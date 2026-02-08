@@ -18,53 +18,53 @@ import { Button, Card, CardHeader, CardTitle, CardDescription, CardContent, Badg
 const features = [
   {
     icon: Code2,
-    title: "Cenários Realistas",
-    description: "Desafios baseados em situações reais do dia a dia de um QA: formulários, tabelas, modais e mais.",
+    title: "Cenários de Produção",
+    description: "Fluxos completos com regras reais: cadastros, validações, erros, estados e comportamento complexo.",
   },
   {
     icon: Database,
-    title: "Testes de API",
-    description: "API REST completa para praticar automação de backend com validações, status codes e payloads.",
+    title: "APIs Reais",
+    description: "REST e GraphQL com validação de schema, paginação, auth, rate limit e respostas dinâmicas.",
   },
   {
     icon: RotateCcw,
     title: "Ambiente Controlado",
-    description: "Reset de dados a qualquer momento. Sempre comece com um estado limpo e previsível.",
+    description: "Reset rápido, dados determinísticos e resultados previsíveis para automação confiável.",
   },
   {
     icon: Zap,
     title: "Edge Cases",
-    description: "Respostas lentas, elementos instáveis e conteúdo dinâmico para testar sua resiliência.",
+    description: "Timeouts, conteúdo instável, delays, listas infinitas e sincronização avançada.",
   },
   {
     icon: Shield,
-    title: "Fluxos de Autenticação",
-    description: "Login, cadastro, recuperação de senha, MFA e sessões expiradas para automatizar.",
+    title: "Segurança e Sessões",
+    description: "JWT, refresh tokens, MFA, expiração e bloqueio por tentativas falhas.",
   },
   {
     icon: Terminal,
     title: "Multi-Framework",
-    description: "Pratique com Playwright, Cypress, Selenium, Robot Framework ou sua ferramenta favorita.",
+    description: "Pratique com Playwright, Cypress, Selenium, Robot Framework e sua stack favorita.",
   },
 ];
 
 const scenarios = [
   { name: "Elementos Básicos", difficulty: "Iniciante", tests: 15 },
-  { name: "Formulários", difficulty: "Iniciante", tests: 12 },
-  { name: "Navegação e Links", difficulty: "Iniciante", tests: 8 },
+  { name: "Formulários Simples", difficulty: "Iniciante", tests: 12 },
+  { name: "Navegação e Links", difficulty: "Iniciante", tests: 10 },
   { name: "Waits e Sincronização", difficulty: "Intermediário", tests: 18 },
   { name: "Tabelas Dinâmicas", difficulty: "Intermediário", tests: 20 },
-  { name: "Upload de Arquivos", difficulty: "Intermediário", tests: 10 },
-  { name: "Drag & Drop", difficulty: "Avançado", tests: 12 },
-  { name: "Iframes e Shadow DOM", difficulty: "Avançado", tests: 15 },
-  { name: "Testes de API REST", difficulty: "Avançado", tests: 25 },
+  { name: "Formulários Complexos", difficulty: "Intermediário", tests: 16 },
+  { name: "Drag & Drop Avançado", difficulty: "Avançado", tests: 15 },
+  { name: "Iframes & Shadow DOM", difficulty: "Avançado", tests: 12 },
+  { name: "Autenticação & Sessões", difficulty: "Avançado", tests: 18 },
+  { name: "Fluxo de Pagamentos", difficulty: "Avançado", tests: 20 },
   { name: "Fluxo E2E Completo", difficulty: "Expert", tests: 30 },
-  { name: "Performance & Stress", difficulty: "Expert", tests: 8 },
-  { name: "Acessibilidade (A11y)", difficulty: "Expert", tests: 20 },
+  { name: "GraphQL & WebSockets", difficulty: "Expert", tests: 18 },
 ];
 
 const stats = [
-  { value: "50+", label: "Desafios Práticos" },
+  { value: "23", label: "Seções no Playground" },
   { value: "4", label: "Níveis de Dificuldade" },
   { value: "200+", label: "Casos de Teste" },
   { value: "100%", label: "Gratuito" },
@@ -158,9 +158,9 @@ export default function Home() {
         <section className="py-24 px-6 lg:px-8" data-testid="features-section">
           <div className="mx-auto max-w-6xl">
             <div className="text-center mb-16">
-              <Badge className="mb-4">O Que Você Vai Praticar</Badge>
+              <Badge className="mb-4">O que você vai praticar</Badge>
               <h2 className="text-h1 text-white mb-4" data-testid="features-title">
-                Habilidades Essenciais para QAs
+                Habilidades essenciais para QAs
               </h2>
               <p className="text-lg text-[#BFBFBF] max-w-2xl mx-auto">
                 Desafios criados para desenvolver competências reais do mercado de trabalho.
@@ -193,38 +193,49 @@ export default function Home() {
                   Desafios por Nível de Dificuldade
                 </h2>
                 <p className="text-lg text-[#BFBFBF] max-w-xl">
-                  Evolua do básico ao avançado. Cada desafio fortalece uma habilidade específica.
+                  Trilha com desafios completos, incluindo segurança, APIs, performance e fluxos E2E.
                 </p>
               </div>
-              <Link href="/scenarios" className="mt-6 md:mt-0">
-                <Button variant="secondary" data-testid="view-all-scenarios">
-                  Ver Todos os Cenários
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
+              <div className="mt-6 md:mt-0 flex flex-col sm:flex-row gap-3">
+                <Link href="/playground">
+                  <Button data-testid="cta-playground">
+                    Playground
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+                <Link href="/scenarios">
+                  <Button variant="secondary" data-testid="view-all-scenarios">
+                    Trilha de desenvolvimento
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+              </div>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {scenarios.map((scenario, index) => (
-                <Link href={`/scenarios/${scenario.name.toLowerCase().replace(/\s+/g, "-")}`} key={scenario.name}>
-                  <Card variant="interactive" className="h-full" data-testid={`scenario-card-${index}`}>
-                    <CardContent className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-lg font-semibold text-white mb-1">{scenario.name}</h3>
-                        <p className="text-sm text-[#BFBFBF]">{scenario.tests} casos de teste</p>
-                      </div>
-                      <Badge 
-                        variant={
-                          scenario.difficulty === "Iniciante" ? "success" :
-                          scenario.difficulty === "Intermediário" ? "warning" :
-                          scenario.difficulty === "Avançado" ? "error" : "primary"
-                        }
-                      >
-                        {scenario.difficulty}
-                      </Badge>
-                    </CardContent>
-                  </Card>
-                </Link>
+                <Card
+                  key={scenario.name}
+                  variant="interactive"
+                  className="h-full cursor-default"
+                  data-testid={`scenario-card-${index}`}
+                >
+                  <CardContent className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-white mb-1">{scenario.name}</h3>
+                      <p className="text-sm text-[#BFBFBF]">{scenario.tests} casos de teste</p>
+                    </div>
+                    <Badge
+                      variant={
+                        scenario.difficulty === "Iniciante" ? "success" :
+                        scenario.difficulty === "Intermediário" ? "warning" :
+                        scenario.difficulty === "Avançado" ? "error" : "primary"
+                      }
+                    >
+                      {scenario.difficulty}
+                    </Badge>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>
@@ -240,7 +251,7 @@ export default function Home() {
               </div>
 
               <div className="relative">
-                <Badge variant="primary" className="mb-6">Sua Jornada Começa Aqui</Badge>
+                <Badge variant="primary" className="mb-6">Sua jornada começa aqui!</Badge>
                 <h2 className="text-h1 text-white mb-4" data-testid="cta-title">
                   Pronto para Evoluir como QA?
                 </h2>

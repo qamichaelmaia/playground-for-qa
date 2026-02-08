@@ -1,14 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button, Input, Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui";
 import { ChevronDown } from "lucide-react";
 
+type SectionCompletionProps = {
+  onComplete?: () => void;
+  isComplete?: boolean;
+};
+
 // 1. ELEMENTOS BÁSICOS
-export function ElementosBasicosSection() {
+export function ElementosBasicosSection({ onComplete, isComplete }: SectionCompletionProps) {
   const [clickCount, setClickCount] = useState(0);
   const [doubleClickCount, setDoubleClickCount] = useState(0);
-  const [rightClickCount, setRightClickCount] = useState(0);
   const [textInput, setTextInput] = useState("");
   const [selectValue, setSelectValue] = useState("");
   const [selectOpen, setSelectOpen] = useState(false);
@@ -16,6 +20,28 @@ export function ElementosBasicosSection() {
   const [toggleValue, setToggleValue] = useState(false);
   const [checkboxes, setCheckboxes] = useState({ option1: false, option2: false, option3: false });
   const [radioValue, setRadioValue] = useState("");
+  const reportedRef = useRef(false);
+
+  const isDone =
+    clickCount > 0 &&
+    doubleClickCount > 0 &&
+    textInput.trim().length > 0 &&
+    selectValue.trim().length > 0 &&
+    rangeValue !== 50 &&
+    toggleValue;
+
+  useEffect(() => {
+    if (isComplete) {
+      reportedRef.current = true;
+    }
+  }, [isComplete]);
+
+  useEffect(() => {
+    if (!reportedRef.current && isDone) {
+      reportedRef.current = true;
+      onComplete?.();
+    }
+  }, [isDone, onComplete]);
 
   return (
     <div className="space-y-6" data-testid="section-elementos-basicos">
@@ -41,28 +67,9 @@ export function ElementosBasicosSection() {
               >
                 Duplo clique ({doubleClickCount})
               </Button>
-              <Button
-                variant="ghost"
-                onContextMenu={(e) => {
-                  e.preventDefault();
-                  setRightClickCount((c) => c + 1);
-                }}
-                data-testid="right-click-button"
-              >
-                Clique direito ({rightClickCount})
-              </Button>
+              
             </div>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setClickCount(0);
-                setDoubleClickCount(0);
-                setRightClickCount(0);
-              }}
-              data-testid="reset-clicks"
-            >
-              Resetar Tudo
-            </Button>
+            
           </CardContent>
         </Card>
 
@@ -206,7 +213,7 @@ export function ElementosBasicosSection() {
 }
 
 // 2. FORMULÁRIOS SIMPLES
-export function FormulariosSimplesSection() {
+export function FormulariosSimplesSection({ onComplete, isComplete }: SectionCompletionProps) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -216,6 +223,7 @@ export function FormulariosSimplesSection() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const reportedRef = useRef(false);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -249,6 +257,19 @@ export function FormulariosSimplesSection() {
       setTimeout(() => setSubmitSuccess(false), 3000);
     }
   };
+
+  useEffect(() => {
+    if (isComplete) {
+      reportedRef.current = true;
+    }
+  }, [isComplete]);
+
+  useEffect(() => {
+    if (!reportedRef.current && submitSuccess) {
+      reportedRef.current = true;
+      onComplete?.();
+    }
+  }, [submitSuccess, onComplete]);
 
   const handleClear = () => {
     setFormData({
@@ -350,9 +371,12 @@ export function FormulariosSimplesSection() {
 }
 
 // 3. NAVEGAÇÃO E LINKS
-export function NavegacaoLinksSection() {
+export function NavegacaoLinksSection({ onComplete, isComplete }: SectionCompletionProps) {
   const [history, setHistory] = useState<string[]>(["Página Inicial"]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [usedBack, setUsedBack] = useState(false);
+  const [usedForward, setUsedForward] = useState(false);
+  const reportedRef = useRef(false);
 
   const navigate = (page: string) => {
     const newHistory = [...history.slice(0, currentIndex + 1), page];
@@ -363,14 +387,31 @@ export function NavegacaoLinksSection() {
   const goBack = () => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
+      setUsedBack(true);
     }
   };
 
   const goForward = () => {
     if (currentIndex < history.length - 1) {
       setCurrentIndex(currentIndex + 1);
+      setUsedForward(true);
     }
   };
+
+  const isDone = history.length >= 3 && usedBack && usedForward;
+
+  useEffect(() => {
+    if (isComplete) {
+      reportedRef.current = true;
+    }
+  }, [isComplete]);
+
+  useEffect(() => {
+    if (!reportedRef.current && isDone) {
+      reportedRef.current = true;
+      onComplete?.();
+    }
+  }, [isDone, onComplete]);
 
   return (
     <div className="space-y-6" data-testid="section-navegacao-links">
@@ -435,18 +476,25 @@ export function NavegacaoLinksSection() {
 }
 
 // 4. ALERTAS E MODAIS
-export function AlertasModaisSection() {
+export function AlertasModaisSection({ onComplete, isComplete }: SectionCompletionProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [hasAlert, setHasAlert] = useState(false);
+  const [hasConfirm, setHasConfirm] = useState(false);
+  const [hasPrompt, setHasPrompt] = useState(false);
+  const [hasModal, setHasModal] = useState(false);
+  const reportedRef = useRef(false);
 
   const showAlert = () => {
     alert("Este é um alerta simples!");
+    setHasAlert(true);
   };
 
   const showConfirm = () => {
     const result = confirm("Você confirma esta ação?");
     setToastMessage(result ? "Confirmado!" : "Cancelado");
     setTimeout(() => setToastMessage(""), 3000);
+    setHasConfirm(true);
   };
 
   const showPrompt = () => {
@@ -455,7 +503,23 @@ export function AlertasModaisSection() {
       setToastMessage(`Olá, ${result}!`);
       setTimeout(() => setToastMessage(""), 3000);
     }
+    setHasPrompt(true);
   };
+
+  const isDone = hasAlert && hasConfirm && hasPrompt && hasModal;
+
+  useEffect(() => {
+    if (isComplete) {
+      reportedRef.current = true;
+    }
+  }, [isComplete]);
+
+  useEffect(() => {
+    if (!reportedRef.current && isDone) {
+      reportedRef.current = true;
+      onComplete?.();
+    }
+  }, [isDone, onComplete]);
 
   return (
     <div className="space-y-6" data-testid="section-alertas-modais">
@@ -484,7 +548,13 @@ export function AlertasModaisSection() {
             <Button onClick={showPrompt} variant="secondary" data-testid="button-prompt">
               Mostrar Prompt
             </Button>
-            <Button onClick={() => setIsModalOpen(true)} data-testid="button-modal">
+            <Button
+              onClick={() => {
+                setIsModalOpen(true);
+                setHasModal(true);
+              }}
+              data-testid="button-modal"
+            >
               Abrir Modal
             </Button>
           </div>
@@ -521,7 +591,7 @@ export function AlertasModaisSection() {
 }
 
 // 5. CHECKBOXES & RADIOS
-export function CheckboxesRadiosSection() {
+export function CheckboxesRadiosSection({ onComplete, isComplete }: SectionCompletionProps) {
   const [checkboxes, setCheckboxes] = useState({
     option1: false,
     option2: false,
@@ -529,6 +599,7 @@ export function CheckboxesRadiosSection() {
   });
   const [allChecked, setAllChecked] = useState(false);
   const [radioValue, setRadioValue] = useState("");
+  const reportedRef = useRef(false);
 
   const handleSelectAll = () => {
     const newValue = !allChecked;
@@ -539,6 +610,21 @@ export function CheckboxesRadiosSection() {
       option3: newValue
     });
   };
+
+  const isDone = allChecked && radioValue.trim().length > 0;
+
+  useEffect(() => {
+    if (isComplete) {
+      reportedRef.current = true;
+    }
+  }, [isComplete]);
+
+  useEffect(() => {
+    if (!reportedRef.current && isDone) {
+      reportedRef.current = true;
+      onComplete?.();
+    }
+  }, [isDone, onComplete]);
 
   return (
     <div className="space-y-6" data-testid="section-checkboxes-radios">

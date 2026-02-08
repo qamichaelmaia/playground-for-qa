@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "QA Automation Playground | Pratique Automação de Testes",
+  title: "QA Playground | Pratique Automação de Testes",
   description: "Um playground real para QAs praticarem automação de testes de UI e API com Playwright, Cypress, Selenium e mais.",
   keywords: ["QA", "automação de testes", "Playwright", "Cypress", "Selenium", "testes", "prática"],
 };

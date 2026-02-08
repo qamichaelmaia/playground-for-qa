@@ -1,17 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button, Input, Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui";
 import { Upload, CheckCircle2, AlertCircle, X, Search, Filter, GripVertical, Clock, Calendar, ChevronDown, ToggleLeft } from "lucide-react";
 
+type SectionCompletionProps = {
+  onComplete?: () => void;
+  isComplete?: boolean;
+};
+
 // 6. WAITS E SINCRONIZAÇÃO
-export function WaitsSincronizacaoSection() {
+export function WaitsSincronizacaoSection({ onComplete, isComplete }: SectionCompletionProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [loadedData, setLoadedData] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(5);
   const [isCountdownActive, setIsCountdownActive] = useState(false);
   const [dynamicText, setDynamicText] = useState("Texto inicial");
   const [isVisible, setIsVisible] = useState(true);
+  const [hasHidden, setHasHidden] = useState(false);
+  const reportedRef = useRef(false);
 
   const handleSlowLoad = async () => {
     setIsLoading(true);
@@ -38,6 +45,21 @@ export function WaitsSincronizacaoSection() {
     }, 1000);
   };
 
+  const isDone = Boolean(loadedData) && countdown === 0 && hasHidden;
+
+  useEffect(() => {
+    if (isComplete) {
+      reportedRef.current = true;
+    }
+  }, [isComplete]);
+
+  useEffect(() => {
+    if (!reportedRef.current && isDone) {
+      reportedRef.current = true;
+      onComplete?.();
+    }
+  }, [isDone, onComplete]);
+
   return (
     <div className="space-y-6" data-testid="section-waits-sincronizacao">
       <Card>
@@ -61,7 +83,15 @@ export function WaitsSincronizacaoSection() {
             </Button>
             <Button
               variant="secondary"
-              onClick={() => setIsVisible(!isVisible)}
+              onClick={() => {
+                setIsVisible((prev) => {
+                  const next = !prev;
+                  if (!next) {
+                    setHasHidden(true);
+                  }
+                  return next;
+                });
+              }}
               data-testid="toggle-visibility"
             >
               Alternar Elemento
@@ -99,7 +129,7 @@ export function WaitsSincronizacaoSection() {
 }
 
 // 7. TABELAS DINÂMICAS
-export function TabelasDinamicasSection() {
+export function TabelasDinamicasSection({ onComplete, isComplete }: SectionCompletionProps) {
   const sampleUsers = [
     { id: 1, name: "João Silva", email: "joao@exemplo.com", role: "Admin", status: "Ativo" },
     { id: 2, name: "Maria Santos", email: "maria@exemplo.com", role: "Editor", status: "Ativo" },
@@ -112,11 +142,15 @@ export function TabelasDinamicasSection() {
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [hasSearched, setHasSearched] = useState(false);
+  const [hasSorted, setHasSorted] = useState(false);
+  const [hasSelected, setHasSelected] = useState(false);
   const [toast, setToast] = useState<{ show: boolean; type: "success" | "error"; message: string }>({
     show: false,
     type: "success",
     message: "",
   });
+  const reportedRef = useRef(false);
 
   const showToast = (type: "success" | "error", message: string) => {
     setToast({ show: true, type, message });
@@ -139,6 +173,7 @@ export function TabelasDinamicasSection() {
   });
 
   const handleSort = (column: string) => {
+    setHasSorted(true);
     if (sortColumn === column) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
@@ -146,6 +181,21 @@ export function TabelasDinamicasSection() {
       setSortDirection("asc");
     }
   };
+
+  const isDone = hasSearched && hasSorted && hasSelected;
+
+  useEffect(() => {
+    if (isComplete) {
+      reportedRef.current = true;
+    }
+  }, [isComplete]);
+
+  useEffect(() => {
+    if (!reportedRef.current && isDone) {
+      reportedRef.current = true;
+      onComplete?.();
+    }
+  }, [isDone, onComplete]);
 
   return (
     <div className="space-y-6" data-testid="section-tabelas-dinamicas">
@@ -175,7 +225,13 @@ export function TabelasDinamicasSection() {
                 type="text"
                 placeholder="Buscar usuários..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  const nextValue = e.target.value;
+                  setSearchTerm(nextValue);
+                  if (nextValue.trim().length > 0) {
+                    setHasSearched(true);
+                  }
+                }}
                 className="w-full pl-10 pr-4 py-2 rounded-xl bg-white/5 border border-white/12 text-white placeholder:text-[#BFBFBF] focus:border-[#FF6803] focus:outline-none"
                 data-testid="table-search"
               />
@@ -194,6 +250,7 @@ export function TabelasDinamicasSection() {
                       onChange={(e) => {
                         if (e.target.checked) {
                           setSelectedRows(sortedUsers.map((u) => u.id));
+                          setHasSelected(true);
                         } else {
                           setSelectedRows([]);
                         }
@@ -232,6 +289,7 @@ export function TabelasDinamicasSection() {
                         onChange={(e) => {
                           if (e.target.checked) {
                             setSelectedRows([...selectedRows, user.id]);
+                            setHasSelected(true);
                           } else {
                             setSelectedRows(selectedRows.filter((id) => id !== user.id));
                           }
@@ -283,7 +341,7 @@ export function TabelasDinamicasSection() {
 }
 
 // 8. UPLOAD DE ARQUIVOS
-export function UploadArquivosSection() {
+export function UploadArquivosSection({ onComplete, isComplete }: SectionCompletionProps) {
   const [uploadedFile, setUploadedFile] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [toast, setToast] = useState<{ show: boolean; type: "success" | "error"; message: string }>({
@@ -291,6 +349,7 @@ export function UploadArquivosSection() {
     type: "success",
     message: "",
   });
+  const reportedRef = useRef(false);
 
   const showToast = (type: "success" | "error", message: string) => {
     setToast({ show: true, type, message });
@@ -305,6 +364,19 @@ export function UploadArquivosSection() {
     setUploadedFile(file.name);
     showToast("success", `Arquivo "${file.name}" enviado com sucesso!`);
   };
+
+  useEffect(() => {
+    if (isComplete) {
+      reportedRef.current = true;
+    }
+  }, [isComplete]);
+
+  useEffect(() => {
+    if (!reportedRef.current && uploadedFile) {
+      reportedRef.current = true;
+      onComplete?.();
+    }
+  }, [uploadedFile, onComplete]);
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -385,10 +457,26 @@ export function UploadArquivosSection() {
 }
 
 // 9. DROPDOWNS E SELECTS
-export function DropdownsSelectsSection() {
+export function DropdownsSelectsSection({ onComplete, isComplete }: SectionCompletionProps) {
   const [selectValue, setSelectValue] = useState("");
   const [openMenu, setOpenMenu] = useState<"select" | "dropdown" | null>(null);
   const [selectedDropdown, setSelectedDropdown] = useState("Selecione uma opção");
+  const reportedRef = useRef(false);
+
+  const isDone = selectValue.trim().length > 0 && selectedDropdown !== "Selecione uma opção";
+
+  useEffect(() => {
+    if (isComplete) {
+      reportedRef.current = true;
+    }
+  }, [isComplete]);
+
+  useEffect(() => {
+    if (!reportedRef.current && isDone) {
+      reportedRef.current = true;
+      onComplete?.();
+    }
+  }, [isDone, onComplete]);
 
   return (
     <div className="space-y-6" data-testid="section-dropdowns-selects">
@@ -498,7 +586,7 @@ export function DropdownsSelectsSection() {
 }
 
 // 10. FORMULÁRIOS COMPLEXOS
-export function FormulariosComplexosSection() {
+export function FormulariosComplexosSection({ onComplete, isComplete }: SectionCompletionProps) {
   const [formData, setFormData] = useState({
     phone: "",
     cpf: "",
@@ -507,6 +595,7 @@ export function FormulariosComplexosSection() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showDependent, setShowDependent] = useState(false);
+  const reportedRef = useRef(false);
 
   const validatePhone = (phone: string) => {
     if (phone && !/^\(\d{2}\) \d{5}-\d{4}$/.test(phone)) {
@@ -524,6 +613,26 @@ export function FormulariosComplexosSection() {
     }
     return formData.phone;
   };
+
+  const phoneValid = formData.phone.trim().length > 0 && !validatePhone(formData.phone);
+  const isDone =
+    phoneValid &&
+    formData.numberField.trim().length > 0 &&
+    showDependent &&
+    formData.dependentField.trim().length > 0;
+
+  useEffect(() => {
+    if (isComplete) {
+      reportedRef.current = true;
+    }
+  }, [isComplete]);
+
+  useEffect(() => {
+    if (!reportedRef.current && isDone) {
+      reportedRef.current = true;
+      onComplete?.();
+    }
+  }, [isDone, onComplete]);
 
   return (
     <div className="space-y-6" data-testid="section-formularios-complexos">
@@ -590,11 +699,31 @@ export function FormulariosComplexosSection() {
 }
 
 // 11. DATE & TIME PICKERS
-export function DateTimePickersSection() {
+export function DateTimePickersSection({ onComplete, isComplete }: SectionCompletionProps) {
   const [dateValue, setDateValue] = useState("");
   const [timeValue, setTimeValue] = useState("");
   const [rangeStart, setRangeStart] = useState("");
   const [rangeEnd, setRangeEnd] = useState("");
+  const reportedRef = useRef(false);
+
+  const isDone =
+    dateValue.trim().length > 0 &&
+    timeValue.trim().length > 0 &&
+    rangeStart.trim().length > 0 &&
+    rangeEnd.trim().length > 0;
+
+  useEffect(() => {
+    if (isComplete) {
+      reportedRef.current = true;
+    }
+  }, [isComplete]);
+
+  useEffect(() => {
+    if (!reportedRef.current && isDone) {
+      reportedRef.current = true;
+      onComplete?.();
+    }
+  }, [isDone, onComplete]);
 
   return (
     <div className="space-y-6" data-testid="section-data-pickers">

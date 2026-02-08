@@ -1,30 +1,27 @@
 import Link from "next/link";
-import { FlaskConical, Github, Twitter, Linkedin } from "lucide-react";
+import { FlaskConical, Github, Instagram, Linkedin } from "lucide-react";
 
 const footerLinks = {
   practice: [
-    { name: "Desafios", href: "/scenarios" },
+    { name: "Desafios individuais", href: "/scenarios" },
     { name: "Playground", href: "/playground" },
-    { name: "Iniciante", href: "/scenarios?level=iniciante" },
-    { name: "Avançado", href: "/scenarios?level=avancado" },
   ],
   learn: [
-    { name: "Primeiros Passos", href: "/guides/getting-started" },
-    { name: "Guia Playwright", href: "/guides/playwright" },
-    { name: "Guia Cypress", href: "/guides/cypress" },
-    { name: "Guia Selenium", href: "/guides/selenium" },
+    { name: "Guia Playwright", href: "https://playwright.dev/docs/intro" },
+    { name: "Guia Cypress", href: "https://docs.cypress.io/app/get-started/why-cypress" },
+    { name: "Guia Selenium", href: "https://www.selenium.dev/documentation/" },
   ],
   community: [
     { name: "Sobre o Projeto", href: "/about" },
     { name: "Contribuir", href: "/contribute" },
-    { name: "Contato", href: "/contact" },
+    { name: "Contato", href: "https://www.linkedin.com/in/qamichael/"},
   ],
 };
 
 const socialLinks = [
-  { name: "GitHub", href: "https://github.com", icon: Github },
-  { name: "Twitter", href: "https://twitter.com", icon: Twitter },
-  { name: "LinkedIn", href: "https://linkedin.com", icon: Linkedin },
+  { name: "GitHub", href: "https://github.com/qamichaelmaia", icon: Github },
+  { name: "Instagram", href: "https://www.instagram.com/qa.michael", icon: Instagram },
+  { name: "LinkedIn", href: "https://www.linkedin.com/in/qamichael/", icon: Linkedin },
 ];
 
 export function Footer() {
@@ -60,11 +57,11 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Product Links */}
+          {/* Resources Links */}
           <div>
-            <h3 className="text-sm font-semibold text-white mb-4" data-testid="footer-section-practice">Praticar</h3>
+            <h3 className="text-sm font-semibold text-white mb-4" data-testid="footer-section-learn">Aprender</h3>
             <ul className="space-y-3">
-              {footerLinks.practice.map((link) => (
+              {footerLinks.learn.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
@@ -78,11 +75,11 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Resources Links */}
+          {/* Product Links */}
           <div>
-            <h3 className="text-sm font-semibold text-white mb-4" data-testid="footer-section-learn">Aprender</h3>
+            <h3 className="text-sm font-semibold text-white mb-4" data-testid="footer-section-practice">Praticar</h3>
             <ul className="space-y-3">
-              {footerLinks.learn.map((link) => (
+              {footerLinks.practice.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}

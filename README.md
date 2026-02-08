@@ -18,6 +18,24 @@ npm run build
 npm start
 ```
 
+## ▲ Deploy on Vercel
+
+This project is ready for Vercel with the default Next.js settings.
+
+1. Create a new project on Vercel and import this repository.
+2. Keep the defaults:
+  - Framework: Next.js
+  - Build Command: `npm run build`
+  - Output Directory: `.next`
+3. Deploy.
+
+Local preview with Vercel CLI:
+
+```bash
+npm i -g vercel
+vercel dev
+```
+
 ## 📁 Project Structure
 
 ```

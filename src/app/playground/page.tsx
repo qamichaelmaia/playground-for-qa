@@ -1,13 +1,19 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import type { ComponentType } from "react";
 import { Header, Footer } from "@/components/layout";
 import { Card, Badge } from "@/components/ui";
 import { scenarios } from "@/data/scenarios";
 import * as Sections from "@/components/challenges";
 
+type SectionComponentProps = {
+  onComplete?: () => void;
+  isComplete?: boolean;
+};
+
 // Mapeamento de IDs para componentes de seção
-const sectionComponents: Record<string, React.ComponentType> = {
+const sectionComponents: Record<string, ComponentType<SectionComponentProps>> = {
   "elementos-basicos": Sections.ElementosBasicosSection,
   "formularios-simples": Sections.FormulariosSimplesSection,
   "navegacao-links": Sections.NavegacaoLinksSection,
@@ -36,6 +42,19 @@ const sectionComponents: Record<string, React.ComponentType> = {
 export default function PlaygroundPage() {
   const [activeSection, setActiveSection] = useState("elementos-basicos");
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [completedSections, setCompletedSections] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    scenarios.forEach((scenario) => {
+      initial[scenario.id] = false;
+    });
+    return initial;
+  });
+
+  const completedCount = Object.values(completedSections).filter(Boolean).length;
+
+  const markComplete = (id: string) => {
+    setCompletedSections((prev) => (prev[id] ? prev : { ...prev, [id]: true }));
+  };
 
   const scrollToSection = (id: string) => {
     const element = sectionRefs.current[id];
@@ -121,6 +140,7 @@ export default function PlaygroundPage() {
             <div className="flex-1 space-y-16">
               {scenarios.map((scenario) => {
                 const SectionComponent = sectionComponents[scenario.id];
+                const isComplete = completedSections[scenario.id];
                 
                 return (
                   <div
@@ -130,7 +150,16 @@ export default function PlaygroundPage() {
                     className="scroll-mt-24"
                   >
                     {/* Cabeçalho da Seção */}
-                    <div className="mb-6">
+                    <div className="mb-6 relative">
+                      <div
+                        className={`absolute top-0 right-0 w-3 h-3 rounded-full border ${
+                          isComplete
+                            ? "bg-green-400 border-green-400"
+                            : "bg-white/20 border-white/30"
+                        }`}
+                        aria-label={isComplete ? "Seção concluída" : "Seção pendente"}
+                        data-testid={`section-status-${scenario.id}`}
+                      />
                       <div className="flex items-start gap-4 mb-4">
                         <div className="w-12 h-12 rounded-xl bg-[#FF6803]/10 border border-[#FF6803]/30 flex items-center justify-center flex-shrink-0">
                           <scenario.icon className="w-6 h-6 text-[#FF6803]" />
@@ -159,7 +188,10 @@ export default function PlaygroundPage() {
 
                     {/* Componente da Seção */}
                     {SectionComponent ? (
-                      <SectionComponent />
+                      <SectionComponent
+                        onComplete={() => markComplete(scenario.id)}
+                        isComplete={isComplete}
+                      />
                     ) : (
                       <Card className="p-6">
                         <div className="text-center py-8 text-[#BFBFBF]">
@@ -171,6 +203,44 @@ export default function PlaygroundPage() {
                 );
               })}
             </div>
+
+            {/* Painel de XP */}
+            <aside className="hidden xl:block w-72 flex-shrink-0">
+              <div className="sticky top-24">
+                <Card className="p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-white">XP</h3>
+                    <span className="text-xs text-[#BFBFBF]">
+                      {completedCount}/{scenarios.length}
+                    </span>
+                  </div>
+                  <div className="space-y-2 max-h-[calc(100vh-220px)] overflow-y-auto pr-2 modal-scrollbar">
+                    {scenarios.map((scenario) => {
+                      const isComplete = completedSections[scenario.id];
+                      return (
+                        <div key={scenario.id} className="flex items-center gap-2">
+                          <span
+                            className={`w-2.5 h-2.5 rounded-full border ${
+                              isComplete
+                                ? "bg-green-400 border-green-400"
+                                : "bg-white/20 border-white/30"
+                            }`}
+                            aria-hidden="true"
+                          />
+                          <span
+                            className={`text-xs truncate ${
+                              isComplete ? "text-white" : "text-[#BFBFBF]"
+                            }`}
+                          >
+                            {scenario.title}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </Card>
+              </div>
+            </aside>
           </div>
         </div>
       </main>
