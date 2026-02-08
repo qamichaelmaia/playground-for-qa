@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import type { ComponentType } from "react";
 import { Header, Footer } from "@/components/layout";
 import { Card, Badge } from "@/components/ui";
+import { Copy } from "lucide-react";
 import { scenarios } from "@/data/scenarios";
 import * as Sections from "@/components/challenges";
 
@@ -42,6 +43,7 @@ const sectionComponents: Record<string, ComponentType<SectionComponentProps>> = 
 export default function PlaygroundPage() {
   const [activeSection, setActiveSection] = useState("elementos-basicos");
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const supportRef = useRef<HTMLDivElement | null>(null);
   const [completedSections, setCompletedSections] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     scenarios.forEach((scenario) => {
@@ -202,11 +204,52 @@ export default function PlaygroundPage() {
                   </div>
                 );
               })}
+
+              <Card className="p-8" ref={supportRef} id="section-apoio">
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <Badge className="mb-3">Apoio</Badge>
+                    <h2 className="text-2xl font-bold text-white">Apoie o Projeto</h2>
+                  </div>
+                  <p className="text-[#BFBFBF]">
+                    Este playground é gratuito e mantido com muito cuidado. Se você quiser contribuir com
+                    qualquer valor, seu apoio será muito bem-vindo! Obrigado :)
+                  </p>
+                  <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                    <p className="text-xs uppercase tracking-[0.2em] text-[#BFBFBF] mb-2">Chave Pix</p>
+                    <div className="flex items-center gap-3">
+                      <p className="text-sm font-medium text-white" data-testid="pix-key">
+                        contatomichaelmaia@gmail.com
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => navigator.clipboard.writeText("contatomichaelmaia@gmail.com")}
+                        className="relative group text-[#BFBFBF] hover:text-white transition-colors"
+                        aria-label="Copiar"
+                        data-testid="pix-copy"
+                      >
+                        <Copy className="w-4 h-4" />
+                        <span className="pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 rounded-md border border-white/12 bg-[#1a1a1a] px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                          Copiar
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </Card>
             </div>
 
             {/* Painel de XP */}
             <aside className="hidden xl:block w-72 flex-shrink-0">
-              <div className="sticky top-24">
+              <div className="sticky top-24 space-y-3">
+                <button
+                  type="button"
+                  onClick={() => supportRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                  className="w-full rounded-lg border border-green-500/30 bg-green-500/15 px-3 py-2 text-xs font-semibold text-green-100 hover:border-green-400/50 hover:bg-green-500/25 transition-colors"
+                  data-testid="support-cta"
+                >
+                  Gostaria de apoiar o Projeto?
+                </button>
                 <Card className="p-4">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-sm font-semibold text-white">XP</h3>

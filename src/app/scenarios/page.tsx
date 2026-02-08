@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useMemo } from "react";
 import {
   Search,
@@ -227,6 +228,13 @@ export default function ScenariosPage() {
               <p className="text-sm text-[#BFBFBF]">
                 Contribua com ideias! Esta plataforma é feita pela comunidade de QAs.
               </p>
+              <div className="mt-4">
+                <Link href="/autor">
+                  <span className="inline-flex items-center justify-center rounded-lg border border-white/12 bg-white/5 px-4 py-2 text-sm font-semibold text-white hover:border-white/20 hover:bg-white/8 transition-colors">
+                    Entrar em contato
+                  </span>
+                </Link>
+              </div>
             </Card>
           </div>
         </div>
