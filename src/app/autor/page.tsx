@@ -196,26 +196,26 @@ export default function AutorPage() {
     <div className="min-h-screen bg-gradient-radial">
       <Header />
 
-      <main className="pt-28 pb-20">
-        <section className="relative px-6 lg:px-8">
+      <main className="pt-24 pb-16 sm:pt-28 sm:pb-20">
+        <section className="relative px-4 sm:px-6 lg:px-8">
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute -top-20 right-[-120px] w-[420px] h-[420px] bg-[#FF6803]/20 rounded-full blur-[120px]" />
             <div className="absolute bottom-[-120px] left-[-120px] w-[420px] h-[420px] bg-[#AE3A02]/20 rounded-full blur-[140px]" />
           </div>
 
           <div className="relative mx-auto max-w-6xl">
-            <div className="mb-10">
+            <div className="mb-8 sm:mb-10">
               <Badge variant="primary" dot>
                 Portfolio
               </Badge>
             </div>
 
-            <div className="grid gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
+            <div className="grid gap-6 sm:gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
               <div>
                 <Card className="h-fit">
                 <CardContent className="pt-6 space-y-6">
                   <div className="flex items-center justify-center">
-                    <div className="w-40 h-40 rounded-full border border-white/15 bg-white/5 overflow-hidden">
+                    <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-40 lg:h-40 rounded-full border border-white/15 bg-white/5 overflow-hidden">
                       <img
                         src={profileImage.src}
                         alt="Foto de Michael Maia"
@@ -224,11 +224,11 @@ export default function AutorPage() {
                     </div>
                   </div>
                   <div className="text-center space-y-2">
-                    <h1 className="text-2xl font-semibold text-white">Michael Maia</h1>
+                    <h1 className="text-xl sm:text-2xl font-semibold text-white">Michael Maia</h1>
                     
-                    <p className="text-base text-[#FF6803] font-medium">Quality Assurance</p>
+                    <p className="text-sm sm:text-base text-[#FF6803] font-medium">Quality Assurance</p>
                   </div>
-                  <div className="space-y-3 text-sm text-[#BFBFBF]">
+                  <div className="space-y-3 text-xs sm:text-sm text-[#BFBFBF]">
                     <div className="flex items-center gap-2">
                       <MapPin className="w-4 h-4" />
                       <span>Bahia, Brasil</span>
@@ -271,7 +271,7 @@ export default function AutorPage() {
                         <button
                           type="button"
                           onClick={() => navigator.clipboard.writeText("contatomichaelmaia@gmail.com")}
-                          className="hover:text-white transition-colors"
+                          className="break-all hover:text-white transition-colors"
                           data-testid="contact-email-copy"
                         >
                           contatomichaelmaia@gmail.com
@@ -314,7 +314,7 @@ export default function AutorPage() {
                   </CardContent>
                 </Card>
 
-                <div className="flex flex-wrap gap-3">
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
                   {sectionTabs.map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeSection === tab.id;
@@ -324,6 +324,7 @@ export default function AutorPage() {
                         key={tab.id}
                         variant={isActive ? "primary" : "secondary"}
                         onClick={() => setActiveSection(tab.id)}
+                        className="w-full sm:w-auto justify-center"
                         data-testid={`autor-tab-${tab.id}`}
                       >
                         <Icon className="w-4 h-4" />
@@ -337,18 +338,18 @@ export default function AutorPage() {
           </div>
         </section>
 
-        <section className="-mt-24 px-6 lg:px-8">
+        <section className="mt-10 sm:mt-12 md:-mt-24 px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-6xl">
             <div className="grid gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
               <div className="hidden lg:block" aria-hidden="true" />
-              <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-8">
+              <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-5 sm:p-6 lg:p-8">
                 <div className="absolute inset-0 pointer-events-none">
                   <div className="absolute top-0 right-0 h-40 w-40 bg-[#FF6803]/10 blur-[80px]" />
                 </div>
 
                 {activeSection === "skills" && (
                   <div key="skills" className="animate-fade-in-up">
-                    <div className="flex items-center justify-between mb-8">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
                       <div>
                         <Badge className="mb-3">Skills</Badge>
                         <h2 className="text-h1 text-white">Especialidades</h2>
@@ -370,7 +371,7 @@ export default function AutorPage() {
 
                 {activeSection === "experience" && (
                   <div key="experience" className="animate-fade-in-up">
-                    <div className="flex items-center justify-between mb-8">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
                       <div>
                         <Badge className="mb-3">Experiência</Badge>
                         <h2 className="text-h1 text-white">Trajetória Profissional</h2>
@@ -432,14 +433,14 @@ export default function AutorPage() {
 
                 {activeSection === "projects" && (
                   <div key="projects" className="animate-fade-in-up">
-                    <div className="flex items-center justify-between mb-8">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
                       <div>
                         <Badge className="mb-3">Projetos</Badge>
                         <h2 className="text-h1 text-white">Projetos em Destaque</h2>
                       </div>
                       <ArrowRight className="w-6 h-6 text-[#FF6803]" />
                     </div>
-                    <div className="flex flex-wrap gap-3 mb-6">
+                    <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
                       {projectFilters.map((filter) => {
                         const FilterIcon = filter.icon;
                         const isActive = projectFilter === filter.id;
@@ -449,7 +450,7 @@ export default function AutorPage() {
                             key={filter.id}
                             variant="secondary"
                             onClick={() => setProjectFilter(filter.id)}
-                            className={isActive ? "ring-2 ring-[#FF6803]/30" : ""}
+                            className={`text-xs sm:text-sm ${isActive ? "ring-2 ring-[#FF6803]/30" : ""}`}
                             data-testid={`project-filter-${filter.id.toLowerCase()}`}
                           >
                             <FilterIcon className={`w-4 h-4 ${filter.accent}`} />
@@ -477,7 +478,7 @@ export default function AutorPage() {
                               )}
                             </div>
                             <CardContent className="pt-6 flex flex-1 flex-col">
-                              <div className="flex items-start justify-between min-h-[32px] gap-3">
+                              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between min-h-[32px] gap-2 sm:gap-3">
                                 <h3 className="text-lg font-semibold text-white flex-1 min-w-0 truncate">
                                   {project.name}
                                 </h3>
@@ -510,14 +511,14 @@ export default function AutorPage() {
 
                 {activeSection === "certifications" && (
                   <div key="certifications" className="animate-fade-in-up">
-                    <div className="flex items-center justify-between mb-8">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
                       <div>
                         <Badge className="mb-3">Certificações</Badge>
                         <h2 className="text-h1 text-white">Formação e Certificações</h2>
                       </div>
                       <Award className="w-6 h-6 text-[#FF6803]" />
                     </div>
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid md:grid-cols-2 gap-3 sm:gap-4">
                       {certifications.map((cert) => (
                         <Card key={cert.name} className="p-6">
                           <div className="flex items-start gap-4">

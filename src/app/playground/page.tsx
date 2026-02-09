@@ -3,8 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import type { ComponentType } from "react";
 import { Header, Footer } from "@/components/layout";
-import { Card, Badge } from "@/components/ui";
-import { Copy } from "lucide-react";
+import { Card, Badge, Button, Input } from "@/components/ui";
+import { Copy, HandHeart } from "lucide-react";
 import { scenarios } from "@/data/scenarios";
 import * as Sections from "@/components/challenges";
 
@@ -12,6 +12,16 @@ type SectionComponentProps = {
   onComplete?: () => void;
   isComplete?: boolean;
 };
+
+const difficultyFilters = [
+  { id: "Todos", label: "Todos" },
+  { id: "Iniciante", label: "Iniciante" },
+  { id: "Intermediário", label: "Intermediário" },
+  { id: "Avançado", label: "Avançado" },
+  { id: "Expert", label: "Expert" },
+] as const;
+
+type DifficultyFilter = (typeof difficultyFilters)[number]["id"];
 
 // Mapeamento de IDs para componentes de seção
 const sectionComponents: Record<string, ComponentType<SectionComponentProps>> = {
@@ -42,6 +52,8 @@ const sectionComponents: Record<string, ComponentType<SectionComponentProps>> = 
 
 export default function PlaygroundPage() {
   const [activeSection, setActiveSection] = useState("elementos-basicos");
+  const [difficultyFilter, setDifficultyFilter] = useState<DifficultyFilter>("Todos");
+  const [searchTerm, setSearchTerm] = useState("");
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const supportRef = useRef<HTMLDivElement | null>(null);
   const [completedSections, setCompletedSections] = useState<Record<string, boolean>>(() => {
@@ -53,6 +65,39 @@ export default function PlaygroundPage() {
   });
 
   const completedCount = Object.values(completedSections).filter(Boolean).length;
+  const hasActiveFilters = difficultyFilter !== "Todos" || searchTerm.trim().length > 0;
+  const normalizedSearch = searchTerm
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  const filteredScenarios = scenarios.filter((scenario) => {
+    const matchesDifficulty =
+      difficultyFilter === "Todos" || scenario.difficulty === difficultyFilter;
+
+    if (!normalizedSearch) return matchesDifficulty;
+
+    const keywords = [
+      scenario.title,
+      scenario.description,
+      scenario.difficulty,
+      scenario.skills.join(" "),
+      scenario.testCases.map((testCase) => testCase.title).join(" "),
+    ]
+      .join(" ")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+
+    return matchesDifficulty && keywords.includes(normalizedSearch);
+  });
+
+  useEffect(() => {
+    if (filteredScenarios.length === 0) return;
+    if (!filteredScenarios.some((scenario) => scenario.id === activeSection)) {
+      setActiveSection(filteredScenarios[0].id);
+    }
+  }, [activeSection, filteredScenarios]);
 
   const markComplete = (id: string) => {
     setCompletedSections((prev) => (prev[id] ? prev : { ...prev, [id]: true }));
@@ -111,15 +156,60 @@ export default function PlaygroundPage() {
             </p>
           </div>
 
+          <div className="mb-12 flex flex-col gap-4">
+            <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+              <Input
+                label="Buscar desafios"
+                placeholder="Buscar por título ou palavra-chave"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                data-testid="playground-search"
+              />
+              <div className="flex flex-wrap items-center gap-2" data-testid="playground-filters">
+                {difficultyFilters.map((filter) => (
+                  <Button
+                    key={filter.id}
+                    variant={difficultyFilter === filter.id ? "primary" : "secondary"}
+                    size="sm"
+                    onClick={() => setDifficultyFilter(filter.id)}
+                    className="whitespace-nowrap"
+                    data-testid={`filter-${filter.id.toLowerCase()}`}
+                  >
+                    {filter.label}
+                  </Button>
+                ))}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setDifficultyFilter("Todos");
+                  }}
+                  disabled={!hasActiveFilters}
+                  className="whitespace-nowrap"
+                  data-testid="filter-clear"
+                >
+                  Limpar filtros
+                </Button>
+              </div>
+            </div>
+            <div className="text-sm text-[#BFBFBF]" data-testid="playground-results">
+              {filteredScenarios.length} resultado{filteredScenarios.length === 1 ? "" : "s"}
+              {difficultyFilter !== "Todos" || normalizedSearch
+                ? ` de ${scenarios.length} desafios`
+                : null}
+            </div>
+          </div>
+
           <div className="flex gap-8">
             {/* Navegação Lateral (Sticky) */}
             <aside className="hidden lg:block w-64 flex-shrink-0">
               <div className="sticky top-24 space-y-2 max-h-[calc(100vh-120px)] overflow-y-auto pr-2 modal-scrollbar">
                 <div className="flex items-center justify-between mb-4 px-3">
                   <h2 className="text-sm font-semibold text-white">Navegação Rápida</h2>
-                  <span className="text-xs text-[#BFBFBF]">{scenarios.length}</span>
+                  <span className="text-xs text-[#BFBFBF]">{filteredScenarios.length}</span>
                 </div>
-                {scenarios.map((scenario, index) => (
+                {filteredScenarios.map((scenario, index) => (
                   <button
                     key={scenario.id}
                     onClick={() => scrollToSection(scenario.id)}
@@ -140,7 +230,15 @@ export default function PlaygroundPage() {
 
             {/* Conteúdo Principal */}
             <div className="flex-1 space-y-16">
-              {scenarios.map((scenario) => {
+              {filteredScenarios.length === 0 && (
+                <Card className="p-6">
+                  <div className="text-center py-8 text-[#BFBFBF]">
+                    Nenhum desafio encontrado com os filtros atuais.
+                  </div>
+                </Card>
+              )}
+
+              {filteredScenarios.map((scenario) => {
                 const SectionComponent = sectionComponents[scenario.id];
                 const isComplete = completedSections[scenario.id];
                 
@@ -208,8 +306,10 @@ export default function PlaygroundPage() {
               <Card className="p-8" ref={supportRef} id="section-apoio">
                 <div className="flex flex-col gap-4">
                   <div>
-                    <Badge className="mb-3">Apoio</Badge>
-                    <h2 className="text-2xl font-bold text-white">Apoie o Projeto</h2>
+                    <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                      <HandHeart className="h-5 w-5 text-green-500" aria-hidden="true" />
+                      Apoie o Projeto
+                    </h2>
                   </div>
                   <p className="text-[#BFBFBF]">
                     Este playground é gratuito e mantido com muito cuidado. Se você quiser contribuir com

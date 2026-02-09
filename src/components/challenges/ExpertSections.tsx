@@ -131,6 +131,17 @@ export function ConteudoDinamicoSection({ onComplete, isComplete }: SectionCompl
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 space-y-2" data-testid="dynamic-info">
+            <p className="text-sm font-medium text-blue-400">Como funciona</p>
+            <p className="text-xs text-blue-300">
+              A lista carrega páginas no scroll e recebe atualizações via polling em tempo real.
+            </p>
+            <p className="text-sm font-medium text-blue-400">O esperado</p>
+            <p className="text-xs text-blue-300">
+              Sincronizar loading, observar aumento de itens/contadores e validar fim da lista.
+            </p>
+          </div>
+
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3">
             <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-center">
@@ -512,6 +523,17 @@ export function TestesE2ESection({ onComplete, isComplete }: SectionCompletionPr
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 space-y-2" data-testid="e2e-info">
+            <p className="text-sm font-medium text-blue-400">Como funciona</p>
+            <p className="text-xs text-blue-300">
+              Complete o fluxo completo: cadastro, login, catálogo, carrinho, checkout, revisão e confirmação.
+            </p>
+            <p className="text-sm font-medium text-blue-400">O esperado</p>
+            <p className="text-xs text-blue-300">
+              Validar regras de formulário, estados do fluxo, logs e geração do ID do pedido.
+            </p>
+          </div>
+
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs text-[#BFBFBF]">
               Etapa atual:
@@ -966,12 +988,20 @@ export function TestesE2ESection({ onComplete, isComplete }: SectionCompletionPr
 // 20. TESTES DE PERFORMANCE
 export function TestesPerformanceSection({ onComplete, isComplete }: SectionCompletionProps) {
   const [loadTime, setLoadTime] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isMeasuring, setIsMeasuring] = useState(false);
+  const [isLoadTesting, setIsLoadTesting] = useState(false);
   const [memoryUsage, setMemoryUsage] = useState<string>("");
+  const [loadTestSummary, setLoadTestSummary] = useState<
+    { p95: number; avg: number; errors: number; total: number } | null
+  >(null);
+  const [concurrency, setConcurrency] = useState(6);
+  const [errorRate, setErrorRate] = useState(0.15);
+  const [throttled, setThrottled] = useState(false);
+  const [cacheEnabled, setCacheEnabled] = useState(false);
   const reportedRef = useRef(false);
 
   const measurePerformance = async () => {
-    setIsLoading(true);
+    setIsMeasuring(true);
     const start = performance.now();
     
     // Simula operação pesada
@@ -990,7 +1020,41 @@ export function TestesPerformanceSection({ onComplete, isComplete }: SectionComp
       setMemoryUsage(`${used} MB`);
     }
     
-    setIsLoading(false);
+    setIsMeasuring(false);
+  };
+
+  const runLoadTest = async () => {
+    setIsLoadTesting(true);
+    setLoadTestSummary(null);
+
+    const totalRequests = Math.max(4, concurrency) * 4;
+    const baseTime = throttled ? 900 : 350;
+    const jitter = throttled ? 800 : 300;
+    const cacheBonus = cacheEnabled ? -80 : 0;
+
+    const responseTimes: number[] = [];
+    let errors = 0;
+
+    await new Promise((resolve) => setTimeout(resolve, throttled ? 1200 : 700));
+
+    for (let i = 0; i < totalRequests; i += 1) {
+      const time = Math.max(120, Math.round(baseTime + Math.random() * jitter + cacheBonus));
+      const hasError = Math.random() < errorRate;
+      responseTimes.push(time);
+      if (hasError) errors += 1;
+    }
+
+    const sorted = [...responseTimes].sort((a, b) => a - b);
+    const p95Index = Math.max(0, Math.ceil(sorted.length * 0.95) - 1);
+    const avg = Math.round(responseTimes.reduce((sum, value) => sum + value, 0) / responseTimes.length);
+
+    setLoadTestSummary({
+      p95: sorted[p95Index],
+      avg,
+      errors,
+      total: responseTimes.length,
+    });
+    setIsLoadTesting(false);
   };
 
   useEffect(() => {
@@ -1000,11 +1064,11 @@ export function TestesPerformanceSection({ onComplete, isComplete }: SectionComp
   }, [isComplete]);
 
   useEffect(() => {
-    if (!reportedRef.current && loadTime !== null) {
+    if (!reportedRef.current && loadTime !== null && loadTestSummary) {
       reportedRef.current = true;
       onComplete?.();
     }
-  }, [loadTime, onComplete]);
+  }, [loadTime, loadTestSummary, onComplete]);
 
   return (
     <div className="space-y-6" data-testid="section-performance">
@@ -1017,10 +1081,85 @@ export function TestesPerformanceSection({ onComplete, isComplete }: SectionComp
           <CardDescription>Medição de tempo e recursos</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button onClick={measurePerformance} isLoading={isLoading} data-testid="measure-performance">
+          <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 space-y-2" data-testid="performance-info">
+            <p className="text-sm font-medium text-blue-400">Como funciona</p>
+            <p className="text-xs text-blue-300">
+              Meça performance local e rode load test com concorrência, taxa de erro, throttling e cache.
+            </p>
+            <p className="text-sm font-medium text-blue-400">O esperado</p>
+            <p className="text-xs text-blue-300">
+              Conferir métricas (média/p95/erros) e impacto das configurações nos resultados.
+            </p>
+          </div>
+
+          <Button onClick={measurePerformance} isLoading={isMeasuring} data-testid="measure-performance">
             <Zap className="w-4 h-4 mr-2" />
             Medir Performance
           </Button>
+
+          <div className="grid md:grid-cols-2 gap-3">
+            <div className="p-4 rounded-xl bg-white/5 border border-white/12 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-[#BFBFBF]">Concorrência</span>
+                <span className="text-sm text-white" data-testid="concurrency-value">{concurrency}</span>
+              </div>
+              <input
+                type="range"
+                min={2}
+                max={20}
+                value={concurrency}
+                onChange={(e) => setConcurrency(Number(e.target.value))}
+                className="w-full"
+                data-testid="concurrency-range"
+              />
+            </div>
+
+            <div className="p-4 rounded-xl bg-white/5 border border-white/12 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-[#BFBFBF]">Taxa de erro</span>
+                <span className="text-sm text-white" data-testid="error-rate-value">
+                  {Math.round(errorRate * 100)}%
+                </span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={50}
+                value={Math.round(errorRate * 100)}
+                onChange={(e) => setErrorRate(Number(e.target.value) / 100)}
+                className="w-full"
+                data-testid="error-rate-range"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <Button
+              type="button"
+              variant={throttled ? "primary" : "secondary"}
+              onClick={() => setThrottled((prev) => !prev)}
+              data-testid="toggle-throttle"
+            >
+              {throttled ? "Throttling Ativo" : "Throttling Inativo"}
+            </Button>
+            <Button
+              type="button"
+              variant={cacheEnabled ? "primary" : "secondary"}
+              onClick={() => setCacheEnabled((prev) => !prev)}
+              data-testid="toggle-cache"
+            >
+              {cacheEnabled ? "Cache Ativo" : "Cache Inativo"}
+            </Button>
+            <Button
+              type="button"
+              onClick={runLoadTest}
+              isLoading={isLoadTesting}
+              data-testid="run-load-test"
+            >
+              <Infinity className="w-4 h-4 mr-2" />
+              Executar Load Test
+            </Button>
+          </div>
 
           {loadTime !== null && (
             <div className="grid md:grid-cols-2 gap-4">
@@ -1034,6 +1173,25 @@ export function TestesPerformanceSection({ onComplete, isComplete }: SectionComp
                   <p className="text-2xl font-bold text-[#FF6803]">{memoryUsage}</p>
                 </div>
               )}
+            </div>
+          )}
+
+          {loadTestSummary && (
+            <div className="grid md:grid-cols-3 gap-4" data-testid="load-test-summary">
+              <div className="p-4 rounded-xl bg-white/5 border border-white/12">
+                <p className="text-sm text-[#BFBFBF] mb-1">Tempo médio</p>
+                <p className="text-2xl font-bold text-[#FF6803]">{loadTestSummary.avg}ms</p>
+              </div>
+              <div className="p-4 rounded-xl bg-white/5 border border-white/12">
+                <p className="text-sm text-[#BFBFBF] mb-1">p95</p>
+                <p className="text-2xl font-bold text-[#FF6803]">{loadTestSummary.p95}ms</p>
+              </div>
+              <div className="p-4 rounded-xl bg-white/5 border border-white/12">
+                <p className="text-sm text-[#BFBFBF] mb-1">Erros</p>
+                <p className="text-2xl font-bold text-[#FF6803]">
+                  {loadTestSummary.errors}/{loadTestSummary.total}
+                </p>
+              </div>
             </div>
           )}
 
@@ -1092,6 +1250,17 @@ export function TestesAcessibilidadeSection({ onComplete, isComplete }: SectionC
           <CardDescription>ARIA, navegação por teclado e foco</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 space-y-2" data-testid="a11y-info">
+            <p className="text-sm font-medium text-blue-400">Como funciona</p>
+            <p className="text-xs text-blue-300">
+              Interaja via teclado, use aria-live e selecione opções acessíveis.
+            </p>
+            <p className="text-sm font-medium text-blue-400">O esperado</p>
+            <p className="text-xs text-blue-300">
+              Foco visível, anúncios no aria-live e elementos customizados acessíveis.
+            </p>
+          </div>
+
           {/* ARIA Live Region */}
           <div
             role="status"
@@ -1217,7 +1386,15 @@ export function TestesAcessibilidadeSection({ onComplete, isComplete }: SectionC
 // 22. TESTES DE INTERNACIONALIZAÇÃO
 export function TestesInternacionalizacaoSection({ onComplete, isComplete }: SectionCompletionProps) {
   const [locale, setLocale] = useState("pt-BR");
+  const [localeDropdownOpen, setLocaleDropdownOpen] = useState(false);
   const [currency, setCurrency] = useState(1234.56);
+  const [timeZone, setTimeZone] = useState("America/Sao_Paulo");
+  const [timeZoneDropdownOpen, setTimeZoneDropdownOpen] = useState(false);
+  const [hasChangedLocale, setHasChangedLocale] = useState(false);
+  const [hasChangedTimeZone, setHasChangedTimeZone] = useState(false);
+  const [isSwitchingLocale, setIsSwitchingLocale] = useState(false);
+  const [notifications, setNotifications] = useState(3);
+  const [amountInput, setAmountInput] = useState("1234,56");
   const reportedRef = useRef(false);
 
   const translations: Record<string, any> = {
@@ -1225,11 +1402,13 @@ export function TestesInternacionalizacaoSection({ onComplete, isComplete }: Sec
       title: "Bem-vindo",
       description: "Este é um teste de internacionalização",
       button: "Alternar Idioma",
+      cta: "Continuar",
     },
     "en-US": {
       title: "Welcome",
       description: "This is an internationalization test",
       button: "Toggle Language",
+      cta: "Continue",
     },
     "es-ES": {
       title: "Bienvenido",
@@ -1251,17 +1430,47 @@ export function TestesInternacionalizacaoSection({ onComplete, isComplete }: Sec
       year: "numeric",
       month: "long",
       day: "numeric",
+      timeZone,
     }).format(new Date());
+  };
+
+  const parseAmount = (value: string, activeLocale: string) => {
+    if (!value.trim()) return NaN;
+    const sanitized = activeLocale === "en-US"
+      ? value.replace(/,/g, "")
+      : value.replace(/\./g, "").replace(/,/g, ".");
+    return Number(sanitized);
+  };
+
+  const handleLocaleChange = (nextLocale: string) => {
+    setIsSwitchingLocale(true);
+    setTimeout(() => {
+      setLocale(nextLocale);
+      setAmountInput(nextLocale === "en-US" ? "1234.56" : "1234,56");
+      setIsSwitchingLocale(false);
+      setHasChangedLocale(true);
+    }, 700);
+  };
+
+  const handleTimeZoneChange = (nextTimeZone: string) => {
+    setTimeZone(nextTimeZone);
+    setHasChangedTimeZone(true);
   };
 
   const toggleLocale = () => {
     const locales = ["pt-BR", "en-US", "es-ES"];
     const currentIndex = locales.indexOf(locale);
     const nextIndex = (currentIndex + 1) % locales.length;
-    setLocale(locales[nextIndex]);
+    handleLocaleChange(locales[nextIndex]);
   };
 
-  const isDone = locale !== "pt-BR";
+  const pluralizeNotifications = (count: number) => {
+    const rule = new Intl.PluralRules(locale).select(count);
+    if (rule === "one") return `${count} notificação`;
+    return `${count} notificações`;
+  };
+
+  const isDone = hasChangedLocale && hasChangedTimeZone;
 
   useEffect(() => {
     if (isComplete) {
@@ -1277,7 +1486,7 @@ export function TestesInternacionalizacaoSection({ onComplete, isComplete }: Sec
   }, [isDone, onComplete]);
 
   return (
-    <div className="space-y-6" data-testid="section-i18n">
+    <div className="space-y-6" data-testid="section-i18n" dir="ltr">
       <Card>
         <CardHeader>
           <CardTitle>
@@ -1286,7 +1495,95 @@ export function TestesInternacionalizacaoSection({ onComplete, isComplete }: Sec
           </CardTitle>
           <CardDescription>Suporte multi-idioma e formatação</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 text-left">
+          <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 space-y-2" data-testid="i18n-info">
+            <p className="text-sm font-medium text-blue-400">Como funciona</p>
+            <p className="text-xs text-blue-300">
+              Troque locale e timezone para testar pluralização e parsing de valores.
+            </p>
+            <p className="text-sm font-medium text-blue-400">O esperado</p>
+            <p className="text-xs text-blue-300">
+              Textos, data e moeda mudam; parser valida formato.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Locale Dropdown Customizado */}
+            <div className="relative">
+              <label className="text-sm font-medium text-white block mb-1">Locale</label>
+              <button
+                onClick={() => setLocaleDropdownOpen((open) => !open)}
+                className="w-40 flex items-center justify-between px-4 py-3 rounded-xl bg-white/5 border border-white/12 text-white hover:border-white/20 transition-colors"
+                data-testid="select-locale"
+                aria-expanded={localeDropdownOpen}
+                type="button"
+              >
+                <span className={locale ? "text-white" : "text-[#BFBFBF]"}>
+                  {locale || "Escolha o locale"}
+                </span>
+                <svg className={`w-4 h-4 transition-transform ${localeDropdownOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              {localeDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-2 py-2 rounded-xl bg-[#1a1a1a] border border-white/12 shadow-xl z-[60] max-h-60 overflow-y-auto">
+                  {["pt-BR", "en-US", "es-ES"].map((option) => (
+                    <button
+                      key={`locale-${option}`}
+                      onClick={() => { handleLocaleChange(option); setLocaleDropdownOpen(false); }}
+                      className={`w-full px-4 py-2 text-left transition-colors ${
+                        locale === option
+                          ? "text-[#FF6803] bg-white/5"
+                          : "text-[#BFBFBF] hover:text-white hover:bg-white/5"
+                      }`}
+                      data-testid={`select-locale-option-${option}`}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            {/* Timezone Dropdown Customizado */}
+            <div className="relative">
+              <label className="text-sm font-medium text-white block mb-1">Timezone</label>
+              <button
+                onClick={() => setTimeZoneDropdownOpen((open) => !open)}
+                className="w-48 flex items-center justify-between px-4 py-3 rounded-xl bg-white/5 border border-white/12 text-white hover:border-white/20 transition-colors"
+                data-testid="select-timezone"
+                aria-expanded={timeZoneDropdownOpen}
+                type="button"
+              >
+                <span className={timeZone ? "text-white" : "text-[#BFBFBF]"}>
+                  {timeZone || "Escolha o timezone"}
+                </span>
+                <svg className={`w-4 h-4 transition-transform ${timeZoneDropdownOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              {timeZoneDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-2 py-2 rounded-xl bg-[#1a1a1a] border border-white/12 shadow-xl z-[60] max-h-60 overflow-y-auto">
+                  {["America/Sao_Paulo", "America/New_York", "Europe/Madrid"].map((option) => (
+                    <button
+                      key={`timezone-${option}`}
+                      onClick={() => { handleTimeZoneChange(option); setTimeZoneDropdownOpen(false); }}
+                      className={`w-full px-4 py-2 text-left transition-colors ${
+                        timeZone === option
+                          ? "text-[#FF6803] bg-white/5"
+                          : "text-[#BFBFBF] hover:text-white hover:bg-white/5"
+                      }`}
+                      data-testid={`select-timezone-option-${option}`}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {isSwitchingLocale && (
+            <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400" data-testid="locale-loading">
+              Carregando traduções...
+            </div>
+          )}
+
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-medium text-white" data-testid="i18n-title">
@@ -1294,6 +1591,9 @@ export function TestesInternacionalizacaoSection({ onComplete, isComplete }: Sec
               </h3>
               <p className="text-sm text-[#BFBFBF]" data-testid="i18n-description">
                 {translations[locale].description}
+              </p>
+              <p className="text-sm text-[#BFBFBF]" data-testid="i18n-cta">
+                {translations[locale].cta ?? "Texto indisponível"}
               </p>
             </div>
             <div className="px-3 py-1 rounded-lg bg-[#FF6803]/20 text-[#FF6803] text-sm font-medium" data-testid="current-locale">
@@ -1314,6 +1614,41 @@ export function TestesInternacionalizacaoSection({ onComplete, isComplete }: Sec
                 {formatDate(locale)}
               </span>
             </div>
+            <div className="flex justify-between">
+              <span className="text-[#BFBFBF]">Notificações:</span>
+              <span className="text-white font-medium" data-testid="pluralized-notifications">
+                {pluralizeNotifications(notifications)}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="number"
+                value={notifications}
+                onChange={(e) => setNotifications(Number(e.target.value))}
+                className="w-24 px-3 py-2 rounded-xl bg-white/5 border border-white/12 text-white"
+                data-testid="notifications-input"
+                min={0}
+              />
+              <span className="text-xs text-[#BFBFBF]">Atualize para testar pluralização.</span>
+            </div>
+          </div>
+
+          <div className="space-y-2 p-4 rounded-xl bg-white/5 border border-white/12">
+            <label className="text-sm text-[#BFBFBF]">Valor digitado ({locale})</label>
+            <input
+              value={amountInput}
+              onChange={(e) => setAmountInput(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/12 text-white"
+              data-testid="amount-input"
+            />
+            <div className="flex justify-between text-sm">
+              <span className="text-[#BFBFBF]">Parse:</span>
+              <span className="text-white" data-testid="amount-parsed">
+                {Number.isNaN(parseAmount(amountInput, locale))
+                  ? "Formato inválido"
+                  : parseAmount(amountInput, locale).toFixed(2)}
+              </span>
+            </div>
           </div>
 
           <Button onClick={toggleLocale} data-testid="toggle-locale">
@@ -1330,6 +1665,16 @@ export function IntegracaoGraphQLSection({ onComplete, isComplete }: SectionComp
   const [query, setQuery] = useState("");
   const [result, setResult] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<"query" | "subscription">("query");
+  const [authToken, setAuthToken] = useState("");
+  const [subscriptionActive, setSubscriptionActive] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<"connected" | "disconnected" | "reconnecting">("disconnected");
+  const [events, setEvents] = useState<string[]>([]);
+  const [hasQueryResult, setHasQueryResult] = useState(false);
+  const [hasSubscriptionEvent, setHasSubscriptionEvent] = useState(false);
+  const subscriptionIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const subscriptionEnabledRef = useRef(false);
   const reportedRef = useRef(false);
 
   const exampleQuery = `{
@@ -1360,10 +1705,89 @@ export function IntegracaoGraphQLSection({ onComplete, isComplete }: SectionComp
     setIsLoading(true);
     setResult(null);
     setTimeout(() => {
+      if (!authToken.trim()) {
+        setResult({ errors: [{ message: "Unauthorized: missing token" }] });
+        setHasQueryResult(false);
+        setIsLoading(false);
+        return;
+      }
+
+      if (!query.trim()) {
+        setResult({ errors: [{ message: "Query vazia" }] });
+        setHasQueryResult(false);
+        setIsLoading(false);
+        return;
+      }
+
+      if (query.toLowerCase().includes("error")) {
+        setResult({ errors: [{ message: "Erro de validação no schema" }] });
+        setHasQueryResult(false);
+        setIsLoading(false);
+        return;
+      }
+
       setResult(mockGraphQLData);
+      setHasQueryResult(true);
       setIsLoading(false);
-    }, 1000);
+    }, 1100);
   };
+
+  const stopSubscription = () => {
+    if (subscriptionIntervalRef.current) {
+      clearInterval(subscriptionIntervalRef.current);
+      subscriptionIntervalRef.current = null;
+    }
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+    setSubscriptionActive(false);
+    subscriptionEnabledRef.current = false;
+    setConnectionStatus("disconnected");
+  };
+
+  const startSubscription = () => {
+    if (!authToken.trim()) {
+      setEvents((prev) => ["Erro: token obrigatorio", ...prev].slice(0, 8));
+      setConnectionStatus("disconnected");
+      return;
+    }
+
+    setSubscriptionActive(true);
+    subscriptionEnabledRef.current = true;
+    setConnectionStatus("connected");
+    setEvents((prev) => ["Conectado ao WebSocket", ...prev].slice(0, 8));
+
+    let eventCount = 0;
+    subscriptionIntervalRef.current = setInterval(() => {
+      eventCount += 1;
+      const payload = `Evento ${eventCount} - ${new Date().toLocaleTimeString()}`;
+      setEvents((prev) => [payload, ...prev].slice(0, 8));
+      setHasSubscriptionEvent(true);
+
+      if (eventCount === 5) {
+        if (subscriptionIntervalRef.current) {
+          clearInterval(subscriptionIntervalRef.current);
+          subscriptionIntervalRef.current = null;
+        }
+        setConnectionStatus("reconnecting");
+        setEvents((prev) => ["Conexao perdida. Reconectando...", ...prev].slice(0, 8));
+        reconnectTimeoutRef.current = setTimeout(() => {
+          if (subscriptionEnabledRef.current) {
+            setConnectionStatus("connected");
+            startSubscription();
+          }
+        }, 1200);
+      }
+    }, 1200);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (subscriptionIntervalRef.current) clearInterval(subscriptionIntervalRef.current);
+      if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (isComplete) {
@@ -1372,11 +1796,11 @@ export function IntegracaoGraphQLSection({ onComplete, isComplete }: SectionComp
   }, [isComplete]);
 
   useEffect(() => {
-    if (!reportedRef.current && result) {
+    if (!reportedRef.current && hasQueryResult && hasSubscriptionEvent) {
       reportedRef.current = true;
       onComplete?.();
     }
-  }, [result, onComplete]);
+  }, [hasQueryResult, hasSubscriptionEvent, onComplete]);
 
   return (
     <div className="space-y-6" data-testid="section-graphql">
@@ -1386,30 +1810,102 @@ export function IntegracaoGraphQLSection({ onComplete, isComplete }: SectionComp
             <Database className="w-5 h-5 inline mr-2" />
             GraphQL API
           </CardTitle>
-          <CardDescription>Consultas e mutações GraphQL</CardDescription>
+          <CardDescription>Consultas, auth headers e subscriptions</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <label className="text-sm font-medium text-white block mb-2">Query GraphQL</label>
-            <textarea
-              value={query || exampleQuery}
-              onChange={(e) => setQuery(e.target.value)}
-              className="w-full h-32 px-4 py-3 rounded-xl bg-white/5 border border-white/12 text-white font-mono text-sm placeholder:text-[#BFBFBF] focus:border-[#FF6803] focus:outline-none resize-none modal-scrollbar"
-              data-testid="graphql-query"
+          <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 space-y-2" data-testid="graphql-info">
+            <p className="text-sm font-medium text-blue-400">Como funciona</p>
+            <p className="text-xs text-blue-300">
+              Informe token, execute query e inicie subscription para receber eventos em tempo real.
+            </p>
+            <p className="text-sm font-medium text-blue-400">O esperado</p>
+            <p className="text-xs text-blue-300">
+              Sem token retorna erro; com token retorna dados; subscription reconecta e atualiza status.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-white block">Token de Autenticacao</label>
+            <Input
+              value={authToken}
+              onChange={(e) => setAuthToken(e.target.value)}
+              placeholder="Bearer ..."
+              data-testid="graphql-token"
             />
           </div>
 
-          <Button onClick={executeQuery} isLoading={isLoading} data-testid="execute-query">
-            <Code className="w-4 h-4 mr-2" />
-            Executar Query
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant={activeTab === "query" ? "primary" : "secondary"}
+              onClick={() => setActiveTab("query")}
+              data-testid="tab-query"
+            >
+              Query
+            </Button>
+            <Button
+              type="button"
+              variant={activeTab === "subscription" ? "primary" : "secondary"}
+              onClick={() => setActiveTab("subscription")}
+              data-testid="tab-subscription"
+            >
+              Subscription
+            </Button>
+          </div>
 
-          {result && (
-            <div className="p-4 rounded-xl bg-white/5 border border-white/12" data-testid="graphql-response">
-              <p className="text-sm font-medium text-white mb-2">Resposta:</p>
-              <pre className="text-xs text-[#BFBFBF] overflow-x-auto modal-scrollbar">
-                {JSON.stringify(result, null, 2)}
-              </pre>
+          {activeTab === "query" && (
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-medium text-white block mb-2">Query GraphQL</label>
+                <textarea
+                  value={query || exampleQuery}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="w-full h-32 px-4 py-3 rounded-xl bg-white/5 border border-white/12 text-white font-mono text-sm placeholder:text-[#BFBFBF] focus:border-[#FF6803] focus:outline-none resize-none modal-scrollbar"
+                  data-testid="graphql-query"
+                />
+              </div>
+
+              <Button onClick={executeQuery} isLoading={isLoading} data-testid="execute-query">
+                <Code className="w-4 h-4 mr-2" />
+                Executar Query
+              </Button>
+
+              {result && (
+                <div className="p-4 rounded-xl bg-white/5 border border-white/12" data-testid="graphql-response">
+                  <p className="text-sm font-medium text-white mb-2">Resposta:</p>
+                  <pre className="text-xs text-[#BFBFBF] overflow-x-auto modal-scrollbar">
+                    {JSON.stringify(result, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "subscription" && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <Button
+                  type="button"
+                  variant={subscriptionActive ? "secondary" : "primary"}
+                  onClick={subscriptionActive ? stopSubscription : startSubscription}
+                  data-testid="toggle-subscription"
+                >
+                  {subscriptionActive ? "Parar" : "Iniciar"}
+                </Button>
+                <span className="text-sm text-[#BFBFBF]" data-testid="subscription-status">
+                  Status: {connectionStatus}
+                </span>
+              </div>
+
+              <div className="p-4 rounded-xl bg-white/5 border border-white/12" data-testid="subscription-events">
+                <p className="text-sm font-medium text-white mb-2">Eventos em tempo real</p>
+                <div className="space-y-1 text-xs text-[#BFBFBF]">
+                  {events.length === 0 && <p>Nenhum evento recebido.</p>}
+                  {events.map((event, index) => (
+                    <p key={`${event}-${index}`}>{event}</p>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </CardContent>

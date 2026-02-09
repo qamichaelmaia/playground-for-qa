@@ -99,7 +99,7 @@ export function ElementosBasicosSection({ onComplete, isComplete }: SectionCompl
               </div>
             </div>
             <div className="text-sm text-[#BFBFBF]" data-testid="text-output">
-              Você digitou: {textInput || "(vazio)"}
+              {textInput && <>Você digitou: {textInput}</>}
             </div>
           </CardContent>
         </Card>

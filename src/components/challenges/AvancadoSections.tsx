@@ -659,6 +659,17 @@ export function IntegracaoAPISection({ onComplete, isComplete }: SectionCompleti
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 space-y-2" data-testid="api-rest-info">
+            <p className="text-sm font-medium text-blue-400">Como funciona</p>
+            <p className="text-xs text-blue-300">
+              Use os botões de GET/POST/PUT/DELETE, pagine a lista e teste o 404.
+            </p>
+            <p className="text-sm font-medium text-blue-400">O esperado</p>
+            <p className="text-xs text-blue-300">
+              Validar status HTTP, mensagens de sucesso/erro, atualização da lista e contador de operações.
+            </p>
+          </div>
+
           {/* Status & Operations Counter */}
           <div className="grid grid-cols-2 gap-4">
             <div className="p-3 rounded-xl bg-white/5 border border-white/10">
@@ -1710,6 +1721,17 @@ export function MultiJanelasAbasSection({ onComplete, isComplete }: SectionCompl
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 space-y-2" data-testid="multi-window-info">
+            <p className="text-sm font-medium text-blue-400">Como funciona</p>
+            <p className="text-xs text-blue-300">
+              Abra novas abas ou popups, envie mensagens e sincronize dados via LocalStorage.
+            </p>
+            <p className="text-sm font-medium text-blue-400">O esperado</p>
+            <p className="text-xs text-blue-300">
+              Verificar janelas ativas/bloqueadas, log de eventos, mensagens recebidas e sync entre janelas.
+            </p>
+          </div>
+
           {/* Window Management */}
           <div className="grid grid-cols-2 gap-3">
             <Button onClick={openNewTab} data-testid="open-new-tab">

@@ -18,32 +18,32 @@ import { Button, Card, CardHeader, CardTitle, CardDescription, CardContent, Badg
 const features = [
   {
     icon: Code2,
-    title: "Cenários de Produção",
+    title: "Cenário de produção",
     description: "Fluxos completos com regras reais: cadastros, validações, erros, estados e comportamento complexo.",
   },
   {
     icon: Database,
-    title: "APIs Reais",
+    title: "Api real",
     description: "REST e GraphQL com validação de schema, paginação, auth, rate limit e respostas dinâmicas.",
   },
   {
     icon: RotateCcw,
-    title: "Ambiente Controlado",
+    title: "Ambiente controlado",
     description: "Reset rápido, dados determinísticos e resultados previsíveis para automação confiável.",
   },
   {
     icon: Zap,
-    title: "Edge Cases",
+    title: "Edge case",
     description: "Timeouts, conteúdo instável, delays, listas infinitas e sincronização avançada.",
   },
   {
     icon: Shield,
-    title: "Segurança e Sessões",
+    title: "Segurança e sessão",
     description: "JWT, refresh tokens, MFA, expiração e bloqueio por tentativas falhas.",
   },
   {
     icon: Terminal,
-    title: "Multi-Framework",
+    title: "Multi-framework",
     description: "Pratique com Playwright, Cypress, Selenium, Robot Framework e sua stack favorita.",
   },
 ];
@@ -64,9 +64,9 @@ const scenarios = [
 ];
 
 const stats = [
-  { value: "23", label: "Seções no Playground" },
-  { value: "4", label: "Níveis de Dificuldade" },
-  { value: "200+", label: "Casos de Teste" },
+  { value: "23", label: "Seções no playground" },
+  { value: "4", label: "Níveis de dificuldade" },
+  { value: "200+", label: "Casos de teste" },
   { value: "100%", label: "Gratuito" },
 ];
 
@@ -160,7 +160,7 @@ export default function Home() {
             <div className="text-center mb-16">
               <Badge className="mb-4">O que você vai praticar</Badge>
               <h2 className="text-h1 text-white mb-4" data-testid="features-title">
-                Habilidades essenciais para QAs
+                Habilidade essencial para QAs
               </h2>
               <p className="text-lg text-[#BFBFBF] max-w-2xl mx-auto">
                 Desafios criados para desenvolver competências reais do mercado de trabalho.
@@ -188,9 +188,9 @@ export default function Home() {
           <div className="mx-auto max-w-6xl">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12">
               <div>
-                <Badge className="mb-4">Trilha de Aprendizado</Badge>
+                <Badge className="mb-4">Trilha de aprendizado</Badge>
                 <h2 className="text-h1 text-white mb-4" data-testid="scenarios-title">
-                  Desafios por Nível de Dificuldade
+                  Desafios por nível de dificuldade
                 </h2>
                 <p className="text-lg text-[#BFBFBF] max-w-xl">
                   Trilha com desafios completos, incluindo segurança, APIs, performance e fluxos E2E.
@@ -253,7 +253,7 @@ export default function Home() {
               <div className="relative">
                 <Badge variant="primary" className="mb-6">Sua jornada começa aqui!</Badge>
                 <h2 className="text-h1 text-white mb-4" data-testid="cta-title">
-                  Pronto para Evoluir como QA?
+                  Pronto para evoluir como QA?
                 </h2>
                 <p className="text-lg text-[#BFBFBF] max-w-xl mx-auto mb-8">
                   Comece agora mesmo a praticar automação de testes. Escolha um desafio
