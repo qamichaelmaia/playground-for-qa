@@ -7,7 +7,7 @@ import { Header, Footer } from "@/components/layout";
 import { Card, Badge, Button, Input } from "@/components/ui";
 import { Copy, HandHeart } from "lucide-react";
 import { scenarios } from "@/data/scenarios";
-import { PowerRanking, UserXPPanel, XPToast } from "@/components/playground";
+import { UserXPPanel, XPToast } from "@/components/playground";
 import * as Sections from "@/components/challenges";
 
 type SectionComponentProps = {
@@ -76,9 +76,21 @@ export default function PlaygroundPage() {
   const completedCount = Object.values(completedSections).filter(Boolean).length;
   const hasActiveFilters = difficultyFilter !== "Todos" || searchTerm.trim().length > 0;
 
+  // Função para calcular XP baseado na dificuldade
+  const calculateXPForDifficulty = (difficulty: string): number => {
+    switch (difficulty) {
+      case "Iniciante": return 10;
+      case "Intermediário": return 20;
+      case "Avançado": return 30;
+      case "Expert": return 50;
+      default: return 10;
+    }
+  };
+
   // Carregar progresso do usuário ao montar o componente
   useEffect(() => {
     if (session?.user) {
+      // Carregar do backend se autenticado
       fetch("/api/playground/user-progress")
         .then((res) => res.json())
         .then((data) => {
@@ -93,6 +105,23 @@ export default function PlaygroundPage() {
           }
         })
         .catch((err) => console.error("Erro ao carregar progresso:", err));
+    } else {
+      // Carregar do localStorage se não autenticado
+      try {
+        const savedProgress = localStorage.getItem("playground-progress");
+        const savedXP = localStorage.getItem("playground-xp");
+        
+        if (savedProgress) {
+          const progress = JSON.parse(savedProgress);
+          setCompletedSections(progress);
+        }
+        
+        if (savedXP) {
+          setTotalXP(parseInt(savedXP, 10));
+        }
+      } catch (err) {
+        console.error("Erro ao carregar progresso local:", err);
+      }
     }
   }, [session?.user]);
 
@@ -130,39 +159,59 @@ export default function PlaygroundPage() {
   }, [activeSection, filteredScenarios]);
 
   const markComplete = async (id: string) => {
+    // Verifica se já está completo
+    if (completedSections[id]) return;
+
+    const scenario = scenarios.find((s) => s.id === id);
+    if (!scenario) return;
+
     // Marca como completo localmente
-    setCompletedSections((prev) => {
-      if (prev[id]) return prev; // Já completo
-      return { ...prev, [id]: true };
-    });
+    const updatedSections = { ...completedSections, [id]: true };
+    setCompletedSections(updatedSections);
 
     // Se usuário autenticado, envia progresso para a API
     if (session?.user) {
-      const scenario = scenarios.find((s) => s.id === id);
-      if (scenario) {
-        try {
-          const response = await fetch("/api/playground/progress", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              scenarioId: id,
-              difficulty: scenario.difficulty,
-            }),
-          });
+      try {
+        const response = await fetch("/api/playground/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            scenarioId: id,
+            difficulty: scenario.difficulty,
+          }),
+        });
 
-          const data = await response.json();
-          if (data.success && !data.alreadyCompleted) {
-            setTotalXP(data.totalXP);
-            // Mostrar toast de XP
-            setXpToast({
-              show: true,
-              xpGained: data.xpGained,
-              totalXP: data.totalXP,
-            });
-          }
-        } catch (error) {
-          console.error("Erro ao salvar progresso:", error);
+        const data = await response.json();
+        if (data.success && !data.alreadyCompleted) {
+          setTotalXP(data.totalXP);
+          // Mostrar toast de XP
+          setXpToast({
+            show: true,
+            xpGained: data.xpGained,
+            totalXP: data.totalXP,
+          });
         }
+      } catch (error) {
+        console.error("Erro ao salvar progresso:", error);
+      }
+    } else {
+      // Salvar no localStorage se não autenticado
+      try {
+        const xpGained = calculateXPForDifficulty(scenario.difficulty);
+        const newTotalXP = totalXP + xpGained;
+        
+        setTotalXP(newTotalXP);
+        localStorage.setItem("playground-progress", JSON.stringify(updatedSections));
+        localStorage.setItem("playground-xp", newTotalXP.toString());
+        
+        // Mostrar toast de XP
+        setXpToast({
+          show: true,
+          xpGained: xpGained,
+          totalXP: newTotalXP,
+        });
+      } catch (error) {
+        console.error("Erro ao salvar progresso local:", error);
       }
     }
   };
@@ -415,14 +464,19 @@ export default function PlaygroundPage() {
                   Gostaria de apoiar o Projeto?
                 </button>
 
-                {/* Power Ranking */}
-                <PowerRanking />
-
                 {/* User XP Panel */}
                 <UserXPPanel
                   totalXP={totalXP}
                   completedCount={completedCount}
                   totalScenarios={scenarios.length}
+                  onProgressReset={() => {
+                    setTotalXP(0);
+                    const resetSections: Record<string, boolean> = {};
+                    scenarios.forEach((s) => {
+                      resetSections[s.id] = false;
+                    });
+                    setCompletedSections(resetSections);
+                  }}
                 />
               </div>
             </aside>

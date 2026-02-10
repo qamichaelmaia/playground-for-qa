@@ -24,20 +24,31 @@ export function UserXPPanel({ totalXP, completedCount, totalScenarios, onProgres
   const handleResetProgress = async () => {
     setIsResetting(true);
     try {
-      const response = await fetch("/api/playground/reset", {
-        method: "POST",
-      });
+      if (session?.user) {
+        const response = await fetch("/api/playground/reset", {
+          method: "POST",
+        });
 
-      if (response.ok) {
+        if (response.ok) {
+          setShowResetModal(false);
+          if (onProgressReset) {
+            onProgressReset();
+          } else {
+            window.location.reload();
+          }
+        } else {
+          alert("Erro ao resetar progresso. Tente novamente.");
+        }
+      } else {
+        // Reset local storage for non-authenticated users
+        localStorage.removeItem("playground-progress");
+        localStorage.removeItem("playground-xp");
         setShowResetModal(false);
-        // Recarrega a página ou atualiza o estado
         if (onProgressReset) {
           onProgressReset();
         } else {
           window.location.reload();
         }
-      } else {
-        alert("Erro ao resetar progresso. Tente novamente.");
       }
     } catch (error) {
       console.error("Erro ao resetar progresso:", error);
@@ -46,19 +57,6 @@ export function UserXPPanel({ totalXP, completedCount, totalScenarios, onProgres
       setIsResetting(false);
     }
   };
-
-  if (!session?.user) {
-    return (
-      <Card className="p-4">
-        <div className="text-center py-6">
-          <Zap className="w-8 h-8 text-[#FF6803]/40 mx-auto mb-3" />
-          <p className="text-sm text-[#BFBFBF] mb-3">
-            Faça login para acompanhar seu progresso e participar do Power Ranking
-          </p>
-        </div>
-      </Card>
-    );
-  }
 
   const progressPercentage = Math.round((completedCount / totalScenarios) * 100);
 
@@ -155,20 +153,34 @@ export function UserXPPanel({ totalXP, completedCount, totalScenarios, onProgres
         onClose={() => setShowResetModal(false)}
         title="Resetar Progresso"
       >
-        <div className="space-y-4">
+        <div className="space-y-4 p-6">
           <p className="text-sm text-[#BFBFBF]">
             Tem certeza que deseja resetar todo o seu progresso? Esta ação irá:
           </p>
-          <ul className="list-disc list-inside text-sm text-[#BFBFBF] space-y-1">
-            <li>Zerar todo o seu XP acumulado</li>
-            <li>Remover todas as seções concluídas</li>
-            <li>Resetar seu nível para 1</li>
-            <li>Remover sua posição no Power Ranking</li>
+          <ul className="space-y-2 rounded-xl border border-white/10 bg-white/5 p-3 text-sm text-[#BFBFBF]">
+            <li className="flex items-start gap-2">
+              <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-[#FF6803]" />
+              <span>Zerar todo o seu XP acumulado</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-[#FF6803]" />
+              <span>Remover todas as seções concluídas</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-[#FF6803]" />
+              <span>Resetar seu nível para 1</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-[#FF6803]" />
+              <span>Remover sua posição no Power Ranking</span>
+            </li>
           </ul>
-          <p className="text-sm text-yellow-400">
-            ⚠️ Esta ação não pode ser desfeita!
-          </p>
-          <div className="flex gap-3 mt-6">
+          <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-3">
+            <p className="text-sm text-yellow-200">
+              Esta ação não pode ser desfeita.
+            </p>
+          </div>
+          <div className="flex gap-3 pt-2">
             <Button
               variant="secondary"
               onClick={() => setShowResetModal(false)}

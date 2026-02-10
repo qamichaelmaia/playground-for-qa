@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { Menu, X, FlaskConical, LogIn, LogOut, User, ChevronDown, Pencil } from "lucide-react";
+import { Menu, X, FlaskConical, LogOut, User, ChevronDown, Pencil } from "lucide-react";
 import { Button } from "@/components/ui";
 
 const navigation = [
@@ -154,14 +154,7 @@ export function Header() {
                     </div>
                   )}
                 </div>
-              ) : (
-                <Link href="/login">
-                  <Button variant="secondary" size="sm" data-testid="login-button">
-                    <LogIn className="w-4 h-4" />
-                    Entrar
-                  </Button>
-                </Link>
-              )}
+              ) : null}
             </div>
           )}
 
@@ -235,14 +228,7 @@ export function Header() {
                     <LogOut className="w-4 h-4" />
                     Sair da conta
                   </Button>
-                ) : (
-                  <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="secondary" className="w-full">
-                      <LogIn className="w-4 h-4" />
-                      Entrar
-                    </Button>
-                  </Link>
-                )}
+                ) : null}
               </div>
             </div>
           </div>
