@@ -212,16 +212,23 @@ export async function getPowerRanking(usersData: Array<{
   image?: string | null;
   linkedinUrl?: string | null;
 }>): Promise<RankingEntry[]> {
-  // Busca todos os progressos do banco de dados
-  const allProgress = await db.userProgress.findMany({
-    include: {
-      sections: true,
-    },
-    orderBy: {
-      totalXP: 'desc',
-    },
-    take: 10, // Top 10
-  });
+  let allProgress: Array<{ userId: string; totalXP: number; sections: Array<{ scenarioId: string }> }> = [];
+
+  try {
+    // Busca todos os progressos do banco de dados
+    allProgress = await db.userProgress.findMany({
+      include: {
+        sections: true,
+      },
+      orderBy: {
+        totalXP: "desc",
+      },
+      take: 10, // Top 10
+    });
+  } catch (error) {
+    console.error("Erro ao carregar progresso para ranking:", error);
+    return [];
+  }
 
   // Mapeia para o formato de ranking
   const rankings = allProgress
