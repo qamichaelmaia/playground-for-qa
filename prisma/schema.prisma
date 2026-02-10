@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model UserProgress {
+  userId      String            @id
+  totalXP     Int
+  lastUpdated DateTime
+  sections    CompletedSection[]
+}
+
+model CompletedSection {
+  id         Int          @id @default(autoincrement())
+  user       UserProgress @relation(fields: [userId], references: [userId])
+  userId     String
+  scenarioId String
+}
+
+model UserProfile {
+  userId      String   @id
+  email       String   @unique
+  name        String?
+  image       String?
+  linkedinUrl String?
+  updatedAt   DateTime @updatedAt
+}

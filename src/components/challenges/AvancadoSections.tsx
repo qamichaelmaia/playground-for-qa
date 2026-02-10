@@ -144,12 +144,12 @@ export function DragDropSection({ onComplete, isComplete }: SectionCompletionPro
         } ${dragOverColumn === columnId ? "scale-[1.02] shadow-lg" : ""}`}
         data-testid={`kanban-column-${columnId}`}
       >
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-sm font-semibold">{title}</h3>
-            <p className="text-xs opacity-70">{subtitle}</p>
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <div className="min-w-0">
+            <h3 className="text-sm font-semibold truncate">{title}</h3>
+            <p className="text-xs opacity-70 line-clamp-2">{subtitle}</p>
           </div>
-          <div className="text-xs px-2 py-1 rounded-lg bg-white/10">
+          <div className="text-xs px-2 py-1 rounded-lg bg-white/10 flex-shrink-0">
             {columnItems.length}/{limit}
           </div>
         </div>
@@ -169,10 +169,12 @@ export function DragDropSection({ onComplete, isComplete }: SectionCompletionPro
               <div className="flex items-start gap-2">
                 <GripVertical className="w-4 h-4 text-[#BFBFBF] flex-shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="text-sm font-medium text-white truncate">{item.title}</p>
+                  <div className="flex items-start gap-2 mb-1">
+                    <p className="text-sm font-medium text-white min-w-0 flex-1 truncate">
+                      {item.title}
+                    </p>
                     <span
-                      className={`text-xs px-1.5 py-0.5 rounded border ${
+                      className={`text-xs px-1.5 py-0.5 rounded border flex-shrink-0 ${
                         priorityColors[item.priority]
                       }`}
                     >
@@ -205,7 +207,7 @@ export function DragDropSection({ onComplete, isComplete }: SectionCompletionPro
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {renderColumn("backlog", "Backlog", "Ideias e requisitos")}
             {renderColumn("todo", "A Fazer", "Máx: 5 itens")}
             {renderColumn("inProgress", "Em Progresso", "Máx: 3 itens (WIP)")}

@@ -36,7 +36,7 @@ const skills = [
   "Postman",
   "Docker",
   "CI/CD (Azure DevOps, GitLab, GitHub Actions, Jenkins)",
-  "JavaScript, Python, Ruby, C#, Java",
+  "JavaScript, Typescript, Python, Ruby, C#, Java",
   "Testes Web, Mobile e API",
   "K6 e JMeter",
   "SQL Server, MySQL, MongoDB",
@@ -48,7 +48,7 @@ const experiences = [
     role: "QA Analyst (Pleno)",
     period: "Maio de 2025 - atualmente",
     summary:
-      "QA responsável pela frente técnica do time de Qualidade em uma plataforma de gestão de equipes externas (Web/Mobile).",
+      "QA responsável pela liderança técnica do time de Qualidade em uma plataforma de gestão de equipes e vendas externas (Web/Mobile/API).",
     highlights: [
       "Definição de requisitos de qualidade e criação de casos de teste funcionais, exploratórios e regressão.",
       "Automação com Playwright (Web), Appium (Mobile) e Zapier para processos.",
@@ -303,13 +303,11 @@ export default function AutorPage() {
                     <p>
                       Sou formado em Engenharia de Qualidade de Software pela EBAC e graduado em Análise e
                       Desenvolvimento de Sistemas pela FACINT. Com 4+ anos de experiência, atualmente sou
-                      o QA responsável pela frente técnica do Time de Qualidade na Checkmob, plataforma de
-                      gestão de equipes externas (Web/Mobile).
+                      o QA responsável pela liderança técnica do Time de Qualidade na Checkmob, plataforma de
+                      gestão de equipes e vendas externas (Web/Mobile/API).
                     </p>
                     <p>
-                      Tenho experiências anteriores na Pris, Pipoca Ágil e Crowdtest, atuando com planos de
-                      testes, testes manuais, automatizados e de usabilidade em projetos de empresas como
-                      Serasa, Natura, C&A e Meu Patrocínio.
+                      Tenho experiências anteriores na Pris (empresa do Banco BTG Pactual), Pipoca Ágil e Crowdtest, onde pude trabalhar com planejamentos, testes Manuais, testes automatizados, testes de usabilidade e testes de performance em projetos de empresas como Serasa, Natura, C&A e Meu Patrocínio.
                     </p>
                   </CardContent>
                 </Card>

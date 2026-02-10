@@ -2,10 +2,12 @@
 
 import { useState, useRef, useEffect } from "react";
 import type { ComponentType } from "react";
+import { useSession } from "next-auth/react";
 import { Header, Footer } from "@/components/layout";
 import { Card, Badge, Button, Input } from "@/components/ui";
 import { Copy, HandHeart } from "lucide-react";
 import { scenarios } from "@/data/scenarios";
+import { PowerRanking, UserXPPanel, XPToast } from "@/components/playground";
 import * as Sections from "@/components/challenges";
 
 type SectionComponentProps = {
@@ -51,9 +53,16 @@ const sectionComponents: Record<string, ComponentType<SectionComponentProps>> = 
 };
 
 export default function PlaygroundPage() {
+  const { data: session } = useSession();
   const [activeSection, setActiveSection] = useState("elementos-basicos");
   const [difficultyFilter, setDifficultyFilter] = useState<DifficultyFilter>("Todos");
   const [searchTerm, setSearchTerm] = useState("");
+  const [totalXP, setTotalXP] = useState(0);
+  const [xpToast, setXpToast] = useState<{ show: boolean; xpGained: number; totalXP: number }>({
+    show: false,
+    xpGained: 0,
+    totalXP: 0,
+  });
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const supportRef = useRef<HTMLDivElement | null>(null);
   const [completedSections, setCompletedSections] = useState<Record<string, boolean>>(() => {
@@ -66,6 +75,27 @@ export default function PlaygroundPage() {
 
   const completedCount = Object.values(completedSections).filter(Boolean).length;
   const hasActiveFilters = difficultyFilter !== "Todos" || searchTerm.trim().length > 0;
+
+  // Carregar progresso do usuário ao montar o componente
+  useEffect(() => {
+    if (session?.user) {
+      fetch("/api/playground/user-progress")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setTotalXP(data.totalXP);
+            // Restaurar seções completadas
+            const updated = { ...completedSections };
+            data.completedSections.forEach((id: string) => {
+              updated[id] = true;
+            });
+            setCompletedSections(updated);
+          }
+        })
+        .catch((err) => console.error("Erro ao carregar progresso:", err));
+    }
+  }, [session?.user]);
+
   const normalizedSearch = searchTerm
     .trim()
     .toLowerCase()
@@ -99,8 +129,42 @@ export default function PlaygroundPage() {
     }
   }, [activeSection, filteredScenarios]);
 
-  const markComplete = (id: string) => {
-    setCompletedSections((prev) => (prev[id] ? prev : { ...prev, [id]: true }));
+  const markComplete = async (id: string) => {
+    // Marca como completo localmente
+    setCompletedSections((prev) => {
+      if (prev[id]) return prev; // Já completo
+      return { ...prev, [id]: true };
+    });
+
+    // Se usuário autenticado, envia progresso para a API
+    if (session?.user) {
+      const scenario = scenarios.find((s) => s.id === id);
+      if (scenario) {
+        try {
+          const response = await fetch("/api/playground/progress", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              scenarioId: id,
+              difficulty: scenario.difficulty,
+            }),
+          });
+
+          const data = await response.json();
+          if (data.success && !data.alreadyCompleted) {
+            setTotalXP(data.totalXP);
+            // Mostrar toast de XP
+            setXpToast({
+              show: true,
+              xpGained: data.xpGained,
+              totalXP: data.totalXP,
+            });
+          }
+        } catch (error) {
+          console.error("Erro ao salvar progresso:", error);
+        }
+      }
+    }
   };
 
   const scrollToSection = (id: string) => {
@@ -339,9 +403,9 @@ export default function PlaygroundPage() {
               </Card>
             </div>
 
-            {/* Painel de XP */}
-            <aside className="hidden xl:block w-72 flex-shrink-0">
-              <div className="sticky top-24 space-y-3">
+            {/* Painel de XP e Ranking */}
+            <aside className="hidden xl:block w-80 flex-shrink-0">
+              <div className="sticky top-24 space-y-4">
                 <button
                   type="button"
                   onClick={() => supportRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
@@ -350,38 +414,16 @@ export default function PlaygroundPage() {
                 >
                   Gostaria de apoiar o Projeto?
                 </button>
-                <Card className="p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-semibold text-white">XP</h3>
-                    <span className="text-xs text-[#BFBFBF]">
-                      {completedCount}/{scenarios.length}
-                    </span>
-                  </div>
-                  <div className="space-y-2 max-h-[calc(100vh-220px)] overflow-y-auto pr-2 modal-scrollbar">
-                    {scenarios.map((scenario) => {
-                      const isComplete = completedSections[scenario.id];
-                      return (
-                        <div key={scenario.id} className="flex items-center gap-2">
-                          <span
-                            className={`w-2.5 h-2.5 rounded-full border ${
-                              isComplete
-                                ? "bg-green-400 border-green-400"
-                                : "bg-white/20 border-white/30"
-                            }`}
-                            aria-hidden="true"
-                          />
-                          <span
-                            className={`text-xs truncate ${
-                              isComplete ? "text-white" : "text-[#BFBFBF]"
-                            }`}
-                          >
-                            {scenario.title}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </Card>
+
+                {/* Power Ranking */}
+                <PowerRanking />
+
+                {/* User XP Panel */}
+                <UserXPPanel
+                  totalXP={totalXP}
+                  completedCount={completedCount}
+                  totalScenarios={scenarios.length}
+                />
               </div>
             </aside>
           </div>
@@ -389,6 +431,14 @@ export default function PlaygroundPage() {
       </main>
 
       <Footer />
+
+      {/* XP Toast Notification */}
+      <XPToast
+        show={xpToast.show}
+        xpGained={xpToast.xpGained}
+        totalXP={xpToast.totalXP}
+        onClose={() => setXpToast({ show: false, xpGained: 0, totalXP: 0 })}
+      />
     </div>
   );
 }
